@@ -1,0 +1,16 @@
+{
+  "name": "lambro/covid_gifts",
+  "description": "A free way to sell gift certificates online",
+  "homepage": "https://conservationpays.com/",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0+",
+  "require": {
+    "composer/installers": "~1.0",
+    "wpscholar/wp-async-defer-scripts": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "CovidGifts\\": "CovidGifts/"
+    }
+  }
+}
