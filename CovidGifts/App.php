@@ -63,6 +63,6 @@ class App extends ServiceProvider {
         // new AdminManager(); -- @todo
 
         // load the WP shortcode
-        new ShortcodeManager();
+        new ShortcodeManager($this->root);
     }
 }

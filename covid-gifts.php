@@ -8,7 +8,7 @@
   Author URI: http://lambroschini.com
  */
 
-require_once __DIR__ . '/.env.php';
+// require_once __DIR__ . '/.env.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 \CovidGifts\Adapters\WP\Log::debug('Building app...');

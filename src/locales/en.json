@@ -1,0 +1,37 @@
+{
+    "form": {
+        "labels": {
+            "name": "Name",
+            "email": "Email",
+            "phone": "Phone",
+            "cc": "Payment Card"
+        },
+        "placeholders": {
+            "name": "e.g. Jane Smith",
+            "email": "your@email.com",
+            "phone": "Optional"
+        },
+        "buttons": {
+            "save": "Buy now",
+            "saving": "...Saving"
+        },
+        "validation": {
+            "name": {
+                "required" : "Please enter your name"
+            },
+            "email": {
+                "required" : "Please enter a valid email address"
+            },
+            "phone": {
+                "required" : "Please enter a valid phone number"
+            },
+            "phone_or_email": {
+                "required" : "Please enter your phone number or email address"
+            }
+        }
+    },
+    "errors": {
+        "whoops": "Sorry, something went wrong",
+        "external": "A package used on this page failed to load, probably because of a slow connection or a browser extension/add-on. To use this page, please check your connection and disable any 3rd party extensions (e.g. Ad blockers)."
+    }
+}

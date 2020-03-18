@@ -10,6 +10,7 @@ Vue.config.devtools = true;
 // Use the axios library, since it can be used with or without Vue
 window.axios = require('axios');
 
+
 import Toasted from 'vue-toasted';
 Vue.use(Toasted, {
     position      : 'top-center',
@@ -18,10 +19,13 @@ Vue.use(Toasted, {
     iconPack      : 'fontawesome',    
 });
 
-import App from './App.vue';
+import App  from './components/App.vue';
+import i18n from './i18n';
+
 window.onload = function () {
     if ( document.getElementById('app') ) {
         const app = new Vue({
+            i18n,
             el: '#app',
             render: h => h(App)
         });

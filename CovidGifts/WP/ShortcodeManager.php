@@ -12,8 +12,9 @@ class ShortcodeManager {
     protected $nonceField = 'nonce';
     protected $version = '1.0';
 
-    public function __construct()
+    public function __construct($root)
     {
+        $this->root = \plugin_dir_url($root);
         $this->attach_hooks();
     }
 
@@ -31,7 +32,8 @@ class ShortcodeManager {
     {
 
         $dependencies = array();
-        \wp_enqueue_script( 'CovidGifts', \plugin_dir_url( dirname( __FILE__ ) ) . 'dist/index.js', $dependencies, $this->version );
+        \wp_enqueue_script( 'CovidGifts', $this->root . 'dist/index.js', $dependencies, $this->version );
+        \wp_enqueue_style('Bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css', [], '4.4.1');
         $obj = $this->localizeScript();
         if ( $obj ) {
             \wp_localize_script('CovidGifts', 'ajax_object', $obj);
