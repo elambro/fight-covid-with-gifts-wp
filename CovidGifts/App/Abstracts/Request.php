@@ -37,12 +37,12 @@ abstract class Request {
 
     protected function isEmail($value)
     {
-        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false
+        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     protected function isFloat($value)
     {
-        return filter_var($value, FILTER_VALIDATE_FLOAT) !== false
+        return filter_var($value, FILTER_VALIDATE_FLOAT) !== false;
     }
 
     protected function postedString($attribute)
@@ -63,16 +63,6 @@ abstract class Request {
     protected function postedArray($attribute)
     {
         return filter_input(INPUT_POST, $attribute, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
-    }
-
-    protected function isEmail($value)
-    {
-        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false
-    }
-
-    protected function isFloat($value)
-    {
-        return filter_var($value, FILTER_VALIDATE_FLOAT) !== false
-    }    
+    } 
 
 }

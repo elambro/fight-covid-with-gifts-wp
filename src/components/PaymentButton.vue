@@ -2,55 +2,47 @@
 <template>
     <div>
         <div ref="button" v-if="!hidden"></div>
-        <messages ref="msg"></messages>
     </div>
 </template>
 
 <script>
 
     import axios from 'axios';
-    import Messages from './Messages'
     import LoadsStripe from './../mixins/loads-stripe';
 
     export default {
 
         name: 'PaymentButton',
-        components: {Messages},
         mixins: [LoadsStripe],
 
         props: ['country', 'currency', 'amount', 'clientSecret'],
 
         data() {
             return {
-                button: null,
-                hidden: false
+                button : null,
+                request: null,
+                hidden : false,
             };
         },
-
-        computed: {
-
-        },
         mounted() {
-
+            this.showButton();
         },
         methods: {
             showButton()
             {
                 return this.loadStripe()
-                .then( stripe => this.getPaymentRequest(stripe)
-                .then( ({stripe, paymentRequest}) => {
+                .then( stripe => this.getPaymentRequest(stripe) )
+                .then( stripe => {
                     var elements = stripe.elements(this.$options.elementOptions);
-                    this.button  = elements.create('paymentRequestButton', {paymentRequest});
+                    this.button  = elements.create('paymentRequestButton', {paymentRequest: this.request});
                     // Check the availability of the Payment Request API first.
-                    return paymentRequest.canMakePayment()
-                })
-                .then( result => {
-                    if (result) {
-                        this.button.mount(this.$refs.button);
-                    } else {
-                        this.hidden = true;
+                    if (this.request.canMakePayment()) {
+                        this.mountButton();
+                        return stripe;
                     }
+                    return this.hideButton()
                 })
+                .then( stripe => stripe && this.addPaymentEvent(stripe) )
                 .catch( err => {
                     (console||{}).error && console.error(err);
                 })
@@ -66,16 +58,46 @@
                     },
                     requestPayerName: true,
                     requestPayerEmail: true,
+                    requestPayerPhone: true,
                 })
                 .then( paymentRequest => {
-                    return {stripe, paymentRequest};
+                    this.request = paymentRequest;
+                    return stripe;
                 })
             },
-
-
-            showMessage(type, message)
+            addPaymentEvent(stripe)
             {
-                return this.$refs.messages.showMessage(type,message)
+                this.request.on('paymentmethod', async (ev) => {
+                    // ev -- https://stripe.com/docs/js/appendix/payment_response
+                    // Confirm the PaymentIntent without handling potential next actions (yet).
+                    const {error: confirmError} = await stripe.confirmCardPayment(
+                        this.clientSecret,
+                        {payment_method: ev.paymentMethod.id},
+                        {handleActions: false}
+                    );
+
+                    if (confirmError) {
+                        ev.complete('fail');
+                    } else {
+                        ev.complete('success');
+                        const {error, paymentIntent} = await stripe.confirmCardPayment(this.clientSecret);
+                        if (error) {
+                            this.$emit('error', error);
+                        } else {
+                            this.$emit('success', ev.paymentMethod.id, ev.payerName, ev.payerEmail, ev.payerPhone)
+                        }
+                    }
+                });
+            },
+            mountButton()
+            {
+                this.button.mount(this.$refs.button);
+                return true;
+            },
+            hideButton()
+            {
+                this.hidden = true;
+                return false;
             }
         },
 

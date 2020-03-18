@@ -6,10 +6,9 @@ use CovidGifts\WP\AjaxManager;
 
 class ShortcodeManager {
 
-    public static $shortcode = 'sell-gift-certificates';
-
-    protected $nonceName = 'fight-covid-19-shortcode';
-    protected $nonceField = 'nonce';
+    const SHORTCODE = 'sell-gift-certificates';
+    const NONCE_NAME = 'fight-covid-19-shortcode';
+    const NONCE_FIELD = 'nonce';
     protected $version = '1.0';
 
     public function __construct($root)
@@ -48,7 +47,7 @@ class ShortcodeManager {
     protected function attach_hooks()
     {
 
-        \add_shortcode($this::$shortcode, array($this, 'handle'));
+        \add_shortcode(static::SHORTCODE, array($this, 'handle'));
     }
 
     public function handle( $atts, $content = null ) {
@@ -64,19 +63,21 @@ class ShortcodeManager {
         return '<div id="app"></div>';
     }
 
-    public function checkNonce()
+    public static function checkNonce()
     {
-        check_ajax_referer($this->nonceName,$this->nonceField);
+        check_ajax_referer(static::NONCE_NAME, static::NONCE_FIELD);
     }
 
     protected function localizeScript()
     {
-        $nonce = wp_create_nonce($this->nonceName);        
+        $nonce = wp_create_nonce(static::NONCE_NAME);        
         return [
             'nonce_data'       => $nonce,
-            'nonce_field'      => $this->nonceField,
+            'nonce_field'      => static::NONCE_FIELD,
             'ajax_url'         => \admin_url( 'admin-ajax.php' ),
             'save_action'      => $this->getSaveAction(),
+            'intent_action'    => $this->getIntentAction(),
+            'endpoint_intent'  => \admin_url( 'admin-ajax.php' ) . '?action=' . $this->getIntentAction(),
             'endpoint_save'    => \admin_url( 'admin-ajax.php' ) . '?action=' . $this->getSaveAction()
         ];
     }

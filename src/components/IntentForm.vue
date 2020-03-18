@@ -12,8 +12,6 @@
             </div>
         </div>
 
-        <messages ref="msg"></messages>
-
         <div class="d-sm-flex mt-5">
             <p class="flex-shrink-0">
                 <button type="submit" class="btn btn-primary btn-lg btn-block" :disabled="!canSubmit">
@@ -29,12 +27,10 @@
 <script>
 
     import axios from 'axios';
-    import Messages from './Messages'
 
     export default {
 
         name: 'IntentForm',
-        components: {Messages},
 
         props: {
             value: {
@@ -69,7 +65,7 @@
         data() {
             return {
                 saving   : false,
-                modAmount: this.defaultAmount,
+                modAmount: this.amount,
                 meta     : {}
             };
         },
@@ -89,7 +85,7 @@
             validate()
             {
                 if (!this.modAmount) {
-                    return this.showMessage('warning', $t('intent.validation.amount.required'))
+                    this.$emit('error', $t('intent.validation.amount.required'))
                 }
                 return true;
             },
@@ -101,12 +97,7 @@
 
                 this.saving = true;
 
-                let token = await this.getToken();
-                if (!token) {
-                    return;
-                }
-
-                axios.post( this.endpoint ,this.getFormData(token))
+                axios.post( this.endpoint ,this.getFormData())
                 .then( response => {
 
                     console.log('Response:', response.data);
@@ -115,20 +106,14 @@
                     this.$emit('input', token)
                 })                
                 .catch( error => {
-                    let res = ((((error||{}).response)||{}).data||{}).data;
-                    let msg = res || error.message || $t('errors.whoops');
-                    this.showMessage('danger', msg);
+                    this.$emit('error', error)
                 })
                 .finally( () => this.saving = false )
-            },
-            showMessage(type, message)
-            {
-                return this.$refs.messages.showMessage(type,message)
             },
             getFormData()
             {
                 let data = new FormData;
-                data.append('u_amount', this.amount);
+                data.append('u_amount', this.modAmount);
                 data.append('u_currency', this.currency);
                 data.append('u_meta', this.meta);
                 return this.nonce(data);

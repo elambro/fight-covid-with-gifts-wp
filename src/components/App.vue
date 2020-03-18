@@ -6,12 +6,13 @@
         <IntentForm
             v-if="!clientSecret"
             v-model="clientSecret"
-            :endpoint="endpointIntent"
+            :endpoint="compEndpointIntent"
             :amount.sync="amount"
             :currency="currency"
             :integers-only="integersOnly"
             :symbol="symbol"
-            :nonce="addNonce">
+            :nonce="addNonce"
+            @error="onError">
         </IntentForm>
 
         <div v-else>
@@ -19,12 +20,23 @@
             <div class="form-row mb-3">
                 {{ symbol || currency }} {{ amount }}
             </div>
+
+            <PaymentButton 
+                :country="userCountry"
+                :currency="currency"
+                :amount="amount"
+                :client-secret="clientSecret"
+                @success="onPaid"
+                @error="onError">
+            </PaymentButton>
+
             <CheckoutForm
-                v-else
-                :endpoint="endpoint">
+                :endpoint="compEndpointSave">
             </CheckoutForm>
 
         </div>
+
+        <Messages ref="msg"></Messages>
 
     </div>
 
@@ -32,22 +44,28 @@
 
 <script>
     
-    import CheckoutForm from './CheckoutForm';
-    import IntentForm from './IntentForm';
-    import Nonce from './../mixins/has-nonce-field';
+    import CheckoutForm  from './CheckoutForm';
+    import IntentForm    from './IntentForm';
+    import PaymentButton from './PaymentButton';
+    import Messages      from './Messages'
+    import Nonce         from './../mixins/has-nonce-field';
 
     const DEBUG = false;
 
     export default {
 
         name: 'Covid',
-        components: {CheckoutForm, IntentForm},
+        components: {CheckoutForm, IntentForm, PaymentButton, Messages},
         mixins: [Nonce],
 
         shareable: navigator.share,
 
         props: {
-            endpoint: {
+            endpointSave: {
+                type    : String,
+                required: false,
+            },
+            endpointIntent: {
                 type    : String,
                 required: false,
             },
@@ -72,14 +90,17 @@
         data() {
             return {
                 amount      : this.defaultAmount,
-                clientSecret: null,
+                clientSecret: null
             };
         },
 
         computed: {
-            endpointIntent() {
-                return this.$options.isWordpress ? this.$options.wp.endpoint_save : this.endpoint
+            compEndpointIntent() {
+                return (this.$options.isWordpress ? this.$options.wp.endpoint_intent : this.endpointIntent) || this.endpointIntent
             },
+            compEndpointSave() {
+                return (this.$options.isWordpress ? this.$options.wp.endpoint_save : this.endpointSave) || this.endpointSave
+            }
         },
 
         mounted() {
@@ -93,6 +114,33 @@
                     url  : window.location.href
                 })
                 .catch(e => {})
+            },
+            onPaid(payment_id, name, email, phone)
+            {
+                console.log('paid', payment_id, name, email, phone);
+                alert('paid');
+                // ... @todo
+            },
+            onError(err)
+            {
+                let msg = this.$t('errors.whoops');
+                if (typeof err === 'string') {
+                    msg = err;
+                } else if ((err||{}).response) {
+                    let data = err.response.data.data;
+                    console.warn('Response data:', data);
+                    if (data.trans) {
+                        msg = this.$t(data.trans, [data.other]);
+                    }
+                } else if ((err||{}).message) {
+                    msg = err.message;
+                }
+
+                msg && this.showMessage('warning', msg);
+            },
+            showMessage(type, message)
+            {
+                return this.$refs.msg.showMessage(type,message)
             },
         },
         beforeDestroy () {

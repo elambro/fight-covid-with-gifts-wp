@@ -32,13 +32,11 @@
                     :name="userName" 
                     :currency="currency" 
                     :stripe-api-key="stripeApiKey" 
-                    @error="cardError"
                     :completed.sync="cardCompleted"
+                    @error="cardError"
                 ></InputCard>
             </div>
         </div>
-
-        <messages ref="msg"></messages>
 
         <div class="d-sm-flex mt-5">
             <p class="flex-shrink-0">
@@ -54,16 +52,12 @@
 <script>
 
     import axios         from 'axios';
-    import loadStripeApi from './../stripe-loader'
-    import Messages      from './Messages'
     import InputCard     from './InputCard'
-
-    const DEBUG = false;
 
     export default {
 
         name: 'CheckoutForm',
-        components: {InputCard, Messages},
+        components: {InputCard},
 
         props: {
             endpoint: {
@@ -122,13 +116,13 @@
             validate()
             {
                 if (!this.userName || this.userName.length < this.$options.validation.nameLength) {
-                    return this.showMessage('warning', $t('form.validation.name.required'))
+                    return this.error($t('form.validation.name.required'))
                 }
                 if (this.emailRequired && !this.userEmail) {
-                    return this.showMessage('warning', $t('form.validation.email.required'))
+                    return this.error($t('form.validation.email.required'))
                 }
                 if (!this.userEmail && !this.userPhone) {
-                    return this.showMessage('warning', $t('form.validation.phone_or_email.required'))
+                    return this.error($t('form.validation.phone_or_email.required'))
                 }
                 return true;
             },
@@ -154,20 +148,19 @@
                 .catch( error => {
                     let res = ((((error||{}).response)||{}).data||{}).data;
                     let msg = res || error.message || $t('errors.whoops');
-                    this.showMessage('danger', msg);
+                    this.error(msg);
                 })
                 .finally( () => this.saving = false )
             },
-            showMessage(type, message)
+            error(message)
             {
-                this.messageType = type;
-                this.messageTran = message;
+                this.$emit('error', message);
                 return false;
             },
             async getToken()
             {
                 return this.$refs.card.getCardToken()
-                    .catch( err => this.showMessage(err.message) );
+                    .catch( err => this.error(err.message) );
             },
             getFormData(token)
             {
@@ -184,7 +177,7 @@
             cardError(err)
             {
                 let m = typeof err === 'string' ? err : (err||{}).message;
-                m && this.showMessage('warning', m)
+                m && this.error(m)
             }
         },
         beforeDestroy () {

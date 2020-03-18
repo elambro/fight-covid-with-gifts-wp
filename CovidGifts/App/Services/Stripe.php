@@ -1,4 +1,7 @@
-<?php namespace App\Services;
+<?php namespace CovidGifts\App\Services;
+
+use CovidGifts\App\Contracts\Gateway;
+use CovidGifts\App\Exceptions\PaymentException;
 
 class Stripe implements Gateway
 {
@@ -11,12 +14,21 @@ class Stripe implements Gateway
 
     public function createIntent($amount, $currency, $meta)
     {
-        $intent = \Stripe\PaymentIntent::create([
-            'amount'   => $amount,
-            'currency' => $currency,
-            // Verify your integration in this guide by including this parameter
-            'metadata' => ['integration_check' => 'accept_a_payment'],
-        ]);
+        app()->log('Creating stripe intent... for ' . $currency . ' ' . $amount);
+
+        try {
+            $intent = \Stripe\PaymentIntent::create([
+                'amount'   => $amount,
+                'currency' => $currency,
+                // Verify your integration in this guide by including this parameter
+                'metadata' => ['integration_check' => 'accept_a_payment'],
+            ]);
+        } catch (\Stripe\Exception\ApiErrorException $e)
+        {
+            app()->log('Error: ' . $e->getMessage() );
+            throw new PaymentException('errors.gateway', null, $e);
+        }
+
         return $intent->client_secret;
     }
 

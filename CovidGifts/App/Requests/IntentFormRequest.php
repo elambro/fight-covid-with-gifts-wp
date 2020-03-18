@@ -1,9 +1,10 @@
 <?php namespace CovidGifts\App\Requests;
 
 use CovidGifts\App\Abstracts\Request;
+use CovidGifts\App\Contracts\Gateway;
 use CovidGifts\App\Contracts\GiftCertificate;
 use CovidGifts\App\Exceptions\ValidationException;
-use CovidGifts\App\Contracts\Request as RequestInterface
+use CovidGifts\App\Contracts\Request as RequestInterface;
 
 class IntentFormRequest extends Request implements RequestInterface
 {
@@ -12,19 +13,24 @@ class IntentFormRequest extends Request implements RequestInterface
     {
         $this->validate();
 
-        $cur = $this->get('currency');
-        $amt = $this->get('amount');
+        $cur  = $this->get('currency');
+        $amt  = $this->get('amount');
+        $meta = $this->get('meta');
 
-        $code = app()->resolve(Gateway::class)->intent( $amt, $cur, $this->get('meta'));
+        $code = app()->resolve(Gateway::class)->createIntent( $amt, $cur, $meta);
+
+        return $code;
     }
 
     public function build()
     {
-        return [
+        $data = [
             'amount'   => $this->postedFloat('u_amount'),
             'currency' => $this->postedString('u_currency'),
             'meta'     => $this->postedArray('u_meta')
         ];
+        app()->debug('Data is ', $data);
+        return $data;
     }
 
     public function validate()
@@ -42,11 +48,11 @@ class IntentFormRequest extends Request implements RequestInterface
             throw new ValidationException('amount.max', $max);   
         }
 
-        $curr = $this->get('currency');
+        $currency = $this->get('currency');
         if (!$currency) {
             throw new ValidationException('currency.required');
         }
-        if (strlen($currency) !== '3') {
+        if (strlen($currency) !== 3) {
             throw new ValidationException('currency.valid');
         }
 

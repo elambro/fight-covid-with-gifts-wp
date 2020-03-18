@@ -2,7 +2,9 @@
 
 namespace CovidGifts\WP;
 
-use CovidGifts\App\Contracts\UserFormRequest;
+use CovidGifts\App\Contracts\Request;
+use CovidGifts\App\Requests\IntentFormRequest;
+use CovidGifts\App\Requests\UserFormRequest;
 use CovidGifts\WP\Enqueues;
 use CovidGifts\WP\ShortcodeManager;
 use WP_Error;
@@ -36,28 +38,14 @@ class AjaxManager {
 
     public function handleIntent()
     {
-        ( new ShortcodeManager() )->checkNonce();
-        $request = app()->resolve(IntentFormRequest::class);
-        return $request->handle();
+        ShortcodeManager::checkNonce();
+        return $this->handleRequest( new IntentFormRequest );
     }
 
-    public function chargePurchase()
+    private function handleRequest(Request $request)
     {
-
-        ( new ShortcodeManager() )->checkNonce();
-
-
         try {
-
-
-            $request = app()->resolve(UserFormRequest::class);
-            $request->validate();
-
-
-
-
-
-
+            return $request->handle();
         } catch (\Exception $e) {
             if ($e instanceof \CovidGifts\App\Contracts\Exception) {
                 \wp_send_json_error($e->toArray(), $e->getCode());
@@ -65,8 +53,12 @@ class AjaxManager {
                 throw $e;
             }
         }
+    }
 
-
+    public function chargePurchase()
+    {
+        ShortcodeManager::checkNonce();
+        return $this->handleRequest( new UserFormRequest );
 
 
         // $model = new 

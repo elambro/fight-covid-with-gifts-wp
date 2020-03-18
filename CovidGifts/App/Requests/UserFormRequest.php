@@ -3,7 +3,7 @@
 use CovidGifts\App\Abstracts\Request;
 use CovidGifts\App\Contracts\GiftCertificate;
 use CovidGifts\App\Exceptions\ValidationException;
-use CovidGifts\App\Contracts\Request as RequestInterface
+use CovidGifts\App\Contracts\Request as RequestInterface;
 
 class UserFormRequest extends Request implements RequestInterface
 {
