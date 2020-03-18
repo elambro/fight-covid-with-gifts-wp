@@ -18,6 +18,11 @@ class ShortcodeManager {
         $this->attach_hooks();
     }
 
+    protected function getIntentAction()
+    {
+        return AjaxManager::$intent_action;
+    }
+
     protected function getSaveAction()
     {
         return AjaxManager::$save_action;

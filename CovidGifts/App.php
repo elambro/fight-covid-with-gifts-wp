@@ -40,6 +40,7 @@ class App extends ServiceProvider {
     protected $singletons = [
         CodeGeneratorInterface::class           =>  CodeGenerator::class,
         DatabaseSchemaInterface::class          =>  DatabaseSchema::class,
+        Gateway::class                          =>  Stripe::class,
         MailerInterface::class                  =>  Mailer::class,
         MigrationsInterface::class              =>  Migrations::class,
         LogInterface::class                     =>  Log::class,
@@ -64,5 +65,11 @@ class App extends ServiceProvider {
 
         // load the WP shortcode
         new ShortcodeManager($this->root);
+    }
+
+    public function domain()
+    {
+        $protocols = array('http://', 'http://www.', 'www.');
+        return str_replace($protocols, '', get_site_url());
     }
 }

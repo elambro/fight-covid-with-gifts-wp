@@ -2,22 +2,23 @@
 
 namespace CovidGifts\WP;
 
-use WP_Error;
+use CovidGifts\App\Contracts\UserFormRequest;
 use CovidGifts\WP\Enqueues;
 use CovidGifts\WP\ShortcodeManager;
-use CovidGifts\WP\SubmissionModel;
+use WP_Error;
 
 class AjaxManager {
 
     public static $save_action   = 'buy_covid_cert';
+    public static $intent_action = 'intent_covid_cert';
 
 	/**
 	 * [$endpoints description]
 	 * @var Array
 	 */
 	protected $endpoints = [
-		'save_water_whiz_form' => 'handlePost',
-        'upload_water_whiz_img' => 'handleUpload'
+		'buy_covid_cert' => 'chargePurchase',
+        'intent_covid_cert' => 'handleIntent'
 	];
 
     public function __construct()
@@ -33,26 +34,49 @@ class AjaxManager {
         return 'Sorry, there was a problem building your gift certificate. Please let us know.';
     }
 
-    public function handlePost()
+    public function handleIntent()
     {
+        ( new ShortcodeManager() )->checkNonce();
+        $request = app()->resolve(IntentFormRequest::class);
+        return $request->handle();
+    }
 
-        // error_log('1. handling post');
+    public function chargePurchase()
+    {
 
         ( new ShortcodeManager() )->checkNonce();
 
-        $model = (isset($_POST['u_hash']) && $_POST['u_hash'] && isset($_POST['saved_email'])
-               ? SubmissionModel::findByHash($_POST['u_hash'], $_POST['saved_email'])
-               : null) ?:
-               new SubmissionModel();
+
+        try {
+
+
+            $request = app()->resolve(UserFormRequest::class);
+            $request->validate();
+
+
+
+
+
+
+        } catch (\Exception $e) {
+            if ($e instanceof \CovidGifts\App\Contracts\Exception) {
+                \wp_send_json_error($e->toArray(), $e->getCode());
+            } else {
+                throw $e;
+            }
+        }
+
+
+
+
+        // $model = new 
 
         // error_log('2. created model');
 
         $model->assignAttributes($_POST, 'u_');
 
         $model->validate();
-        $model->sanitize();
 
-        // error_log('3. validated and sanitized');
 
         if ( !$model->save() ) {
             $this->fail($this->errorMessage());

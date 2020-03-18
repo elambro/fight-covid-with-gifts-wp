@@ -20,7 +20,7 @@
         <div class="form-row mb-3">
             <label class="col-md-3">{{ $t('form.labels.phone') }}</label>
             <div class="col-md-9">
-                <input type="tel" autocomplete="tel" name="u_phone" v-model="userPhone" class="form-control" :placeholder="$t('form.placeholders.phone')" />
+                <input type="tel" autocomplete="tel" name="u_phone" v-model="userPhone" class="form-control" :placeholder="phoneExample || $t('form.placeholders.phone')" />
                 <!-- <small class="form-text text-muted"></small> -->
             </div>
         </div>
@@ -28,13 +28,17 @@
         <div class="form-row mb-3">
             <label class="col-md-3">{{ $t('form.labels.cc') }}</label>
             <div class="col-md-9">
-                <InputCard ref="card" :stripe-api-key="stripeApiKey" @error="e => showMessage('warning', e.message)" @complete="cardCompleted = true"></InputCard>
+                <InputCard ref="card" 
+                    :name="userName" 
+                    :currency="currency" 
+                    :stripe-api-key="stripeApiKey" 
+                    @error="cardError"
+                    :completed.sync="cardCompleted"
+                ></InputCard>
             </div>
         </div>
 
-        <div class="alert" :class="`alert-${messageType}`" v-if="messageTran" role="alert">
-          {{ messageTran }}
-        </div>
+        <messages ref="msg"></messages>
 
         <div class="d-sm-flex mt-5">
             <p class="flex-shrink-0">
@@ -44,24 +48,22 @@
                 </button>
             </p>
         </div>
-
-        <input v-if="$options.isWordpress" type="hidden" :name="nonceField" :value="nonceData" />
-
     </form>
 </template>
 
 <script>
 
-    import axios from 'axios';
+    import axios         from 'axios';
     import loadStripeApi from './../stripe-loader'
-    import InputCard from './InputCard'
+    import Messages      from './Messages'
+    import InputCard     from './InputCard'
 
     const DEBUG = false;
 
     export default {
 
         name: 'CheckoutForm',
-        components: {InputCard},
+        components: {InputCard, Messages},
 
         props: {
             endpoint: {
@@ -76,44 +78,38 @@
             stripeApiKey: {
                 type: String,
                 default: process.env.MIX_STRIPE_API_KEY
+            },
+            phoneExample: {
+                type: String,
+                default: process.env.MIX_TEL_STRUCTURE
+            },
+            nonce: {
+                type: Function,
+                required: true
             }
         },
 
-        isWordpress: typeof ajax_object !== 'undefined',
-
-        wp: typeof ajax_object !== 'undefined' ? ajax_object : {},
+        validation: {
+            nameLength: 4,
+        },
 
         data() {
             return {
                 userName     : '',
                 userEmail    : '',
                 userPhone    : '',
-                messageTran  : null,
-                messageType  : null,
                 saving       : false,
                 cardCompleted: false,
+                amount       : this.defaultAmount
             };
         },
 
         computed: {
-            nonceData() {
-                return this.$options.wp.nonce_data;
-            },
-            nonceField() {
-                return this.$options.wp.nonce_field;
-            },
-            nonce() {
-                return this.$options.isWordpress ? {[this.nonceField] : this.nonceData } : false
+            stepSize() {
+                return this.integersOnly ? 1 : 0.01;
             },
             endpointSave() {
                 return this.$options.isWordpress ? this.$options.wp.endpoint_save : this.endpoint
-            },
-            cardMeta() {
-                return {
-                    name :this.userName,
-                    email:this.userEmail,
-                    phone:this.userPhone,
-                }
             },
             canSubmit() {
                 return !this.saving && this.cardCompleted && this.userName && (this.userEmail || this.userPhone);
@@ -149,9 +145,10 @@
                     return;
                 }
 
-                axios.post( this.endpointSave ,this.getFormData())
+                axios.post( this.endpointSave ,this.getFormData(token))
                 .then( response => {
 
+                    console.log('Response:', response.data);
 
                 })                
                 .catch( error => {
@@ -180,8 +177,14 @@
                 data.append('u_email', this.userEmail);
                 data.append('u_phone', this.userPhone);
                 data.append('u_token', token);
+                data.append('u_amount', this.amount);
 
-                return data;
+                return this.nonce(data);
+            },
+            cardError(err)
+            {
+                let m = typeof err === 'string' ? err : (err||{}).message;
+                m && this.showMessage('warning', m)
             }
         },
         beforeDestroy () {

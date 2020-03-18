@@ -4,22 +4,23 @@
 
 <script>
 
-import loadStripeApi from './../stripe-loader';
+import LoadsStripe from './../mixins/loads-stripe';
 
 export default {
     name: 'InputCard',
+    mixins: [LoadsStripe],
 
     props: {
-        stripeApiKey: {
-            type    : String,
-            required: true
-        },
         currency: {
             type: String,
             default: 'USD'
         },
         name: {
             type: String
+        },
+        completed: {
+            type: Boolean,
+            // for .sync
         }
     },
     data() {
@@ -39,11 +40,6 @@ export default {
         this.loadCardInput();
     },
     methods: {
-        async loadStripe()
-        {
-            return loadStripeApi(this.stripeApiKey, 3)
-                .catch(err => Promise.reject( this.$t('errors.external') ))
-        },
         async loadCardInput()
         {
             return this.loadStripe()
@@ -52,7 +48,7 @@ export default {
                     this.card = elements.create('card', this.$options.cardFormOptions);
                     this.card.mount(this.$refs.card);
                     this.card.on('change', e => {
-                        e.complete && this.$emit('complete');
+                        this.$emit('update:completed', e.complete);
                         e.error && this.$emit('error', e.error);
                     })
                 })

@@ -21,6 +21,6 @@ class Payment extends AbstractModel implements PaymentInterface, Model
 
     public function refund()
     {
-        // ...
+        // @todo @payment
     }
 }

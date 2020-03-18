@@ -15,9 +15,19 @@ class GiftCertificate extends AbstractModel implements GiftCertificateInterface,
         }
     }
 
+    public function getMin()
+    {
+        return 1; // @todo @config
+    }
+
+    public function getMax()
+    {
+        return 1000; // @todo @config
+    }
+
     public function qr()
     {
-        // Generate QR from $this->code
+        // Generate QR from $this->code @todo @qr
     }
 
     public function markUsed()

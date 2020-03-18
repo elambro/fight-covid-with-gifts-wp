@@ -1,4 +1,6 @@
 {
+    "product": "Gift Certificate",
+
     "form": {
         "labels": {
             "name": "Name",
@@ -7,6 +9,7 @@
             "cc": "Payment Card"
         },
         "placeholders": {
+            "amount" : "{symbol} {amount}",
             "name": "e.g. Jane Smith",
             "email": "your@email.com",
             "phone": "Optional"
@@ -30,8 +33,35 @@
             }
         }
     },
+    "intent": {
+        "labels": {
+            "amount": "Amount"
+        },
+        "placeholders": {
+            "amount" : "{symbol} {amount}"
+        },
+        "buttons": {
+            "save": "Next",
+            "saving": "Sending..."
+        },
+        "validation": {
+            "amount": {
+                "required" : "Please enter an amount",
+                "min"      : "The amount must be less than {min}",
+                "max"      : "The amount must be less than {max}"
+            },
+            "currency": {
+                "required" : "The currency is required",
+                "valid" : "The currency code is invalid"
+            }
+        }
+    },
+    "share": {
+        "title": "Fight Covid-19 - Buy a gift certificate for {company}"
+    },
     "errors": {
         "whoops": "Sorry, something went wrong",
-        "external": "A package used on this page failed to load, probably because of a slow connection or a browser extension/add-on. To use this page, please check your connection and disable any 3rd party extensions (e.g. Ad blockers)."
+        "external": "A package used on this page failed to load, probably because of a slow connection or a browser extension/add-on. To use this page, please check your connection and disable any 3rd party extensions (e.g. Ad blockers).",
+        "missing-key": "Enter your API key for Stripe to start accepting payments"
     }
 }

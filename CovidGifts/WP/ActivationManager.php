@@ -1,6 +1,7 @@
 <?php
 namespace CovidGifts\WP;
 
+use CovidGifts\App\Contracts\Gateway;
 use CovidGifts\App\Contracts\Migrations;
 
 class ActivationManager {
@@ -19,7 +20,9 @@ class ActivationManager {
     {
         $db = app()->resolve(Migrations::class);
         $db->createPaymentTable();
-        $db->createCertificateTable();        
+        $db->createCertificateTable(); 
+
+        static::setupPaymentGateway();
     }
 
     public static function deactivate()
@@ -27,5 +30,10 @@ class ActivationManager {
         $db = app()->resolve(Migrations::class);
         $db->deleteCertificateTable();
         $db->deletePaymentTable();
+    }
+
+    private static function setupPaymentGateway()
+    {
+        app()->resolve(Gateway::class)->register();
     }
 }

@@ -1,79 +1,99 @@
 
 <template>
     <div>
-        <CheckoutForm :endpoint="endpoint"></CheckoutForm>
-    </div>
+        <span v-if="$options.shareable" @click="share">Share</span>
 
-<!--         <div v-if="savedId">
-            <h1 style="color: #33a6d7;">Thank you for your submission. We will contact the winners by email!</h1>
-            <p>Do you want to <a href="javascript:void(0)" @click="clear">restart?</a></p>
+        <IntentForm
+            v-if="!clientSecret"
+            v-model="clientSecret"
+            :endpoint="endpointIntent"
+            :amount.sync="amount"
+            :currency="currency"
+            :integers-only="integersOnly"
+            :symbol="symbol"
+            :nonce="addNonce">
+        </IntentForm>
+
+        <div v-else>
+
+            <div class="form-row mb-3">
+                {{ symbol || currency }} {{ amount }}
+            </div>
+            <CheckoutForm
+                v-else
+                :endpoint="endpoint">
+            </CheckoutForm>
+
         </div>
 
-        <form v-else ref="form" method="post" :action="endpointSave" @submit.prevent="submit">
+    </div>
 
-            <div class="form-row mb-3">
-                <label class="col-md-3">Name</label>
-                <div class="col-md-9">
-                    <input type="text" name="u_name" v-model="userName" class="form-control" placeholder="e.g. Jane Smith" />
-                </div>
-            </div>
-
-            <div class="form-row mb-3">
-                <label class="col-md-3">Email <span class="required">*</span></label>
-                <div class="col-md-9">
-                    <input type="email" name="u_email" v-model="userEmail" required class="form-control" placeholder="your@email.com" />
-                    <small class="form-text text-muted">We will contact you by email if you win.</small>
-                </div>
-            </div>
-
-            <div class="alert alert-danger" v-if="errorMsg" role="alert">
-              {{ errorMsg }}
-            </div>
-
-            <div class="d-sm-flex mt-5">
-                <p class="flex-shrink-0">
-                    <button type="submit" class="btn btn-primary btn-lg btn-block" :disabled="saving || uploading">
-                        <span v-if="uploading">...Uploading</span>
-                        <span v-else-if="saving">...Saving</span>
-                        <span v-else>Send My Story</span>
-                    </button>
-                </p>
-            </div>
-
-            <input type="hidden" :name="nonceField" :value="nonceData" />
-
-        </form>
-
-    </div> -->
 </template>
 
 <script>
     
     import CheckoutForm from './CheckoutForm';
+    import IntentForm from './IntentForm';
+    import Nonce from './../mixins/has-nonce-field';
 
     const DEBUG = false;
 
     export default {
 
         name: 'Covid',
-        components: {CheckoutForm},
+        components: {CheckoutForm, IntentForm},
+        mixins: [Nonce],
+
+        shareable: navigator.share,
+
         props: {
             endpoint: {
+                type    : String,
+                required: false,
+            },
+            defaultAmount: {
+                type: [Number,String],
+                default: process.env.MIX_PAYMENT_DEFAULT
+            },
+            integersOnly: {
+                type: [Boolean,String],
+                default: process.env.MIX_INTEGERS_ONLY || false
+            },
+            currency: {
                 type: String,
-                required: false
+                default: process.env.MIX_PAYMENT_CURRENCY || 'USD'
+            },
+            symbol: {
+                type: String,
+                default: process.env.MIX_CURRENCY_SYMBOL
             }
         },
 
         data() {
             return {
-
+                amount      : this.defaultAmount,
+                clientSecret: null,
             };
         },
+
+        computed: {
+            endpointIntent() {
+                return this.$options.isWordpress ? this.$options.wp.endpoint_save : this.endpoint
+            },
+        },
+
         mounted() {
 
         },
         methods: {
-
+            share()
+            {
+                navigator.share({
+                    title: this.$t('share.title', [this.company]),
+                    url  : window.location.href
+                })
+                .catch(e => {})
+            },
         },
         beforeDestroy () {
 

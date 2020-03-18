@@ -41,6 +41,11 @@ class ServiceProvider {
         return $this->resolve(Log::class)->log($message, $array);
     }
 
+    public function debug($message, $array = null)
+    {
+        return $this->resolve(Log::class)->debug($message, $array);
+    }
+
     /**
      * Get the globally available instance of the container.
      *
