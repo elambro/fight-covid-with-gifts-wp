@@ -20,7 +20,7 @@ class ValidationException extends \RuntimeException implements Exception
     {
         return [
             'trans' => $this->trans,
-            'other' => $this->other
+            'other' => $this->other ?: []
         ];
     }
 }

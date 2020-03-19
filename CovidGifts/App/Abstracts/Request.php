@@ -27,7 +27,7 @@ abstract class Request {
 
     public function input()
     {
-        return $this->posted;
+        return (object) $this->posted;
     }
 
     public function isMethod($test)

@@ -6,7 +6,7 @@ class CodeGenerator implements CodeGeneratorInterface {
 
     private $size = 12;
 
-    public function make($attributes, $formatted = false)
+    public function random($formatted = false)
     {
         $chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
         $res = "";
@@ -16,12 +16,17 @@ class CodeGenerator implements CodeGeneratorInterface {
         return $formatted ? $this->format($res) : $res;;
     }
 
-    public function format($str)
+    public function make($attributes, $formatted = false)
     {
-        return substr($str,0,4).'-'.substr($str,4,4).substr($str,8,4);   
+        // create a qr
     }
 
-    public function raw($str)
+    public static function format($str)
+    {
+        return substr($str,0,4).'-'.substr($str,4,4).'-'.substr($str,8,4);   
+    }
+
+    public static function raw($str)
     {
         return str_replace('-', '', $str);
     }

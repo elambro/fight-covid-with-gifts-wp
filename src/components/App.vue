@@ -1,39 +1,46 @@
 
 <template>
     <div>
+
         <span v-if="$options.shareable" @click="share">Share</span>
 
-        <IntentForm
+        <PaymentIntent
             v-if="!clientSecret"
             v-model="clientSecret"
-            :endpoint="compEndpointIntent"
+            :endpoint="endpointIntent"
             :amount.sync="amount"
             :currency="currency"
-            :integers-only="integersOnly"
+            :country="country"
             :symbol="symbol"
-            :nonce="addNonce"
             @error="onError">
-        </IntentForm>
+        </PaymentIntent>
 
-        <div v-else>
+        <div v-else-if="!paid">
 
             <div class="form-row mb-3">
                 {{ symbol || currency }} {{ amount }}
             </div>
 
-            <PaymentButton 
-                :country="userCountry"
+            <StripeCheckout
+                :country="country"
                 :currency="currency"
                 :amount="amount"
                 :client-secret="clientSecret"
-                @success="onPaid"
-                @error="onError">
-            </PaymentButton>
+                :endpoint="endpointSave"
+                :email-required="emailRequired"
+                :stripe-api-key="stripeApiKey"
+                @payment="onPaid"
+                @error="onError"
+            ></StripeCheckout>
 
-            <CheckoutForm
-                :endpoint="compEndpointSave">
-            </CheckoutForm>
+        </div>
 
+        <div v-else-if="saving">
+            Loading...
+        </div>
+
+        <div v-else-if="tryAgain">
+            <button type="button" @click="retry">Retry</button>
         </div>
 
         <Messages ref="msg"></Messages>
@@ -44,19 +51,18 @@
 
 <script>
     
-    import CheckoutForm  from './CheckoutForm';
-    import IntentForm    from './IntentForm';
-    import PaymentButton from './PaymentButton';
-    import Messages      from './Messages'
-    import Nonce         from './../mixins/has-nonce-field';
+    import StripeCheckout from './Stripe/Checkout';
+    import PaymentIntent  from './PaymentIntent';
+    import Messages       from './Messages'
+
+    const WP = typeof ajax_object !== 'undefined' ? ajax_object : {};
 
     const DEBUG = false;
 
     export default {
 
         name: 'Covid',
-        components: {CheckoutForm, IntentForm, PaymentButton, Messages},
-        mixins: [Nonce],
+        components: {StripeCheckout, PaymentIntent, Messages},
 
         shareable: navigator.share,
 
@@ -64,45 +70,66 @@
             endpointSave: {
                 type    : String,
                 required: false,
+                default: WP.endpoint_save
             },
             endpointIntent: {
                 type    : String,
                 required: false,
+                default: WP.endpoint_intent
             },
             defaultAmount: {
                 type: [Number,String],
                 default: process.env.MIX_PAYMENT_DEFAULT
             },
-            integersOnly: {
-                type: [Boolean,String],
-                default: process.env.MIX_INTEGERS_ONLY || false
+            /**
+             * The seller's country code
+             * @type {String}
+             */
+            country: {
+                type: String,
+                default: 'US'
             },
+            /**
+             * The currency code
+             * @type {String}
+             */
             currency: {
                 type: String,
                 default: process.env.MIX_PAYMENT_CURRENCY || 'USD'
             },
+            /**
+             * The currency symbol
+             * @type {String}
+             */
             symbol: {
                 type: String,
                 default: process.env.MIX_CURRENCY_SYMBOL
-            }
+            },
+
+            stripeApiKey: {
+                type: String,
+                required: false,
+                default: process.env.MIX_STRIPE_API_KEY || WP.stripe_public_key
+            },
+
+            emailRequired: {
+                type    : Boolean,
+                required: false,
+                default : false,
+            },
+
         },
 
         data() {
             return {
                 amount      : this.defaultAmount,
-                clientSecret: null
+                clientSecret: null,
+                saving      : false,
+                paid        : false,
+                tryAgain    : true,
+                payload     : null, // Dev only!
             };
         },
-
-        computed: {
-            compEndpointIntent() {
-                return (this.$options.isWordpress ? this.$options.wp.endpoint_intent : this.endpointIntent) || this.endpointIntent
-            },
-            compEndpointSave() {
-                return (this.$options.isWordpress ? this.$options.wp.endpoint_save : this.endpointSave) || this.endpointSave
-            }
-        },
-
         mounted() {
 
         },
@@ -115,33 +142,57 @@
                 })
                 .catch(e => {})
             },
-            onPaid(payment_id, name, email, phone)
+            retry()
             {
-                console.log('paid', payment_id, name, email, phone);
-                alert('paid');
-                // ... @todo
+                this.onPaid(this.payload);
+            },
+            onPaid(payload)
+            {
+                this.paid = true;
+
+                this.payload = payload;// Dev only!
+
+                if (this.saving) {
+                    return
+                }
+    
+                // intent_id : paymentIntent.id,
+                // payment_id: ev.paymentMethod.id,
+                // method    : 'stripe-button',
+                // name      : ev.payerName, 
+                // email     : ev.payerEmail,
+                // phone     : ev.payerPhone,
+                // amount    : paymentIntent.amount,
+                // currency  : paymentIntent.currency,
+                // status    : paymentIntent.status
+
+                this.$api.post(this.endpointSave, payload)
+                .then( data => {
+
+                    console.log('Received data from back end.');
+
+                })
+                .catch( err => {
+                    this.onError(err);
+                    
+                })
+                .finally( () => this.saving = false );
             },
             onError(err)
             {
+                console.warn('App.vue received err', err);
+
                 let msg = this.$t('errors.whoops');
                 if (typeof err === 'string') {
-                    msg = err;
-                } else if ((err||{}).response) {
-                    let data = err.response.data.data;
-                    console.warn('Response data:', data);
-                    if (data.trans) {
-                        msg = this.$t(data.trans, [data.other]);
-                    }
+                    msg = this.$t(err);
+                } else if ((err||{}).trans) {
+                    msg = this.$t(err.trans, err.other || []);
                 } else if ((err||{}).message) {
-                    msg = err.message;
+                    msg = this.$t(err.message);
                 }
 
-                msg && this.showMessage('warning', msg);
-            },
-            showMessage(type, message)
-            {
-                return this.$refs.msg.showMessage(type,message)
-            },
+                msg && this.$refs.msg.showMessage('warning',msg)
+            }
         },
         beforeDestroy () {
 

@@ -5,8 +5,8 @@ interface CodeGenerator {
 
     public function make($attributes);
 
-    public function format($str);
+    public static function format($str);
 
-    public function raw($str);
+    public static function raw($str);
 
 }

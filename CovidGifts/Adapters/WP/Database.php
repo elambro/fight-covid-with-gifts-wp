@@ -15,10 +15,12 @@ class Database implements DatabaseInterface {
 
     public function create($attributes)
     {
+        app()->debug('Creating ' . $this->table, $attributes);
         $result = $this->db->insert( $this->table, $attributes);
         if (!$result || $this->db->last_error !== '') {
             return false;
         }
+        app()->debug('Created.');
         return $this->db->insert_id;
     }
 

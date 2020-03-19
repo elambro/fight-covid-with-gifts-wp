@@ -26,8 +26,6 @@
 
 <script>
 
-    import axios from 'axios';
-
     export default {
 
         name: 'IntentForm',
@@ -47,7 +45,7 @@
             },
             integersOnly: {
                 type: [Boolean,String],
-                default: false
+                default: true
             },
             currency: {
                 type: String,
@@ -55,10 +53,6 @@
             },
             symbol: {
                 type: String,
-            },
-            nonce: {
-                type: Function,
-                required: true
             }
         },
 
@@ -94,29 +88,21 @@
                 if (this.saving || !this.validate()) {
                     return;
                 }
-
                 this.saving = true;
 
-                axios.post( this.endpoint ,this.getFormData())
-                .then( response => {
+                let data = {
+                    u_amount  :  this.modAmount,
+                    u_currency:  this.currency,
+                    u_meta    :  this.meta
+                }
 
-                    console.log('Response:', response.data);
-
+                this.$api.post(this.endpoint, data)
+                .then( ({clientSecret}) => {
                     this.$emit('update:amount', this.modAmount);
-                    this.$emit('input', token)
+                    this.$emit('input', clientSecret)
                 })                
-                .catch( error => {
-                    this.$emit('error', error)
-                })
+                .catch( err => this.$emit('error', err))
                 .finally( () => this.saving = false )
-            },
-            getFormData()
-            {
-                let data = new FormData;
-                data.append('u_amount', this.modAmount);
-                data.append('u_currency', this.currency);
-                data.append('u_meta', this.meta);
-                return this.nonce(data);
             }
         }
     };

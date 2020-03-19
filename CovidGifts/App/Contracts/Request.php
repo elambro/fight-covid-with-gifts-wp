@@ -7,7 +7,7 @@ interface Request {
 
     public function get($attribute);
 
-    public function input();
+    public function handle();
 
     public function isMethod($test);
 

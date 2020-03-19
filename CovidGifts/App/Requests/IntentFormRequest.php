@@ -19,7 +19,7 @@ class IntentFormRequest extends Request implements RequestInterface
 
         $code = app()->resolve(Gateway::class)->createIntent( $amt, $cur, $meta);
 
-        return $code;
+        return ['clientSecret' => $code];
     }
 
     public function build()
@@ -37,23 +37,23 @@ class IntentFormRequest extends Request implements RequestInterface
     {
         $amount = $this->get('amount');
         if (!$amount) {
-            throw new ValidationException('amount.required');
+            throw new ValidationException('validation.amount.required');
         }
         $min = app()->resolve(GiftCertificate::class)->getMin();
         if ($amount < $min) {
-            throw new ValidationException('amount.min', $min);   
+            throw new ValidationException('validation.amount.min', ['min' => $min]);   
         }
         $max = app()->resolve(GiftCertificate::class)->getMax();
         if ($amount > $max) {
-            throw new ValidationException('amount.max', $max);   
+            throw new ValidationException('validation.amount.max', ['max' => $max]);   
         }
 
         $currency = $this->get('currency');
         if (!$currency) {
-            throw new ValidationException('currency.required');
+            throw new ValidationException('validation.currency.required');
         }
         if (strlen($currency) !== 3) {
-            throw new ValidationException('currency.valid');
+            throw new ValidationException('validation.currency.valid');
         }
 
         return true;

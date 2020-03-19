@@ -1,6 +1,8 @@
 <?php
 namespace CovidGifts\App\Contracts;
 
+use CovidGifts\App\Contracts\Payment;
+
 interface GiftCertificate {
 
     public function create($attributes);
@@ -22,5 +24,7 @@ interface GiftCertificate {
     public static function find($id);
 
     public static function findByCode($code);
+
+    public function createFromPayment(Payment $payment);
 
 }

@@ -17,20 +17,6 @@
         "buttons": {
             "save": "Buy now",
             "saving": "...Saving"
-        },
-        "validation": {
-            "name": {
-                "required" : "Please enter your name"
-            },
-            "email": {
-                "required" : "Please enter a valid email address"
-            },
-            "phone": {
-                "required" : "Please enter a valid phone number"
-            },
-            "phone_or_email": {
-                "required" : "Please enter your phone number or email address"
-            }
         }
     },
     "intent": {
@@ -43,17 +29,6 @@
         "buttons": {
             "save": "Next",
             "saving": "Sending..."
-        },
-        "validation": {
-            "amount": {
-                "required" : "Please enter an amount",
-                "min"      : "The amount must be less than {min}",
-                "max"      : "The amount must be less than {max}"
-            },
-            "currency": {
-                "required" : "The currency is required",
-                "valid" : "The currency code is invalid"
-            }
         }
     },
     "share": {
@@ -63,6 +38,35 @@
         "whoops": "Sorry, something went wrong",
         "external": "A package used on this page failed to load, probably because of a slow connection or a browser extension/add-on. To use this page, please check your connection and disable any 3rd party extensions (e.g. Ad blockers).",
         "missing-key": "Enter your API key for Stripe to start accepting payments",
-        "gateway" : "There was a problem connecting to the payment gateway."
+        "gateway" : "There was a problem connecting to the payment gateway.",
+        "connection": "Sorry, we could not connect to our server. Please try again later.",
+        "invalid": "Please check your input and try again.",
+        "payment": "Your payment status was invalid"
+    },
+    "validation": {
+        "name": {
+            "required" : "Please enter your name"
+        },
+        "email": {
+            "required" : "Please enter a valid email address"
+        },
+        "phone": {
+            "required" : "Please enter a valid phone number"
+        },
+        "phone_or_email": {
+            "required" : "Please enter your phone number or email address"
+        },
+        "amount": {
+            "required" : "Please enter an amount",
+            "min"      : "The amount must be less than {min}",
+            "max"      : "The amount must be less than {max}"
+        },
+        "currency": {
+            "required" : "The currency is required",
+            "valid" : "The currency code is invalid"
+        },
+        "token": {
+            "required": "The payment token was lost. Please try again."
+        }
     }
 }

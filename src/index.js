@@ -3,13 +3,13 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 window.Vue = require('vue');
+
 // Turn dev tools on. This will automatically be turned off when 
 // compiling in production mode.
 Vue.config.devtools = true;
 
-// Use the axios library, since it can be used with or without Vue
-window.axios = require('axios');
-
+import API from './api';
+Object.defineProperty(Vue.prototype, '$api', { value: API });
 
 import Toasted from 'vue-toasted';
 Vue.use(Toasted, {

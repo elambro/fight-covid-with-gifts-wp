@@ -9,12 +9,17 @@ abstract class AbstractModel {
 
     protected $attributes;
 
+    protected $db;
+
     public function __construct($attributes = [])
     {
         if (!isset($this->table) || !$this->table) {
             throw new \Exception('The model db table has not been set');
         }
         $this->setAttributes($attributes);
+
+        $c = app()->container->getResolver(Database::class);
+        $this->db = new $c($this->table);
     }
 
     public function delete()
@@ -29,10 +34,11 @@ abstract class AbstractModel {
 
     public function create($attributes = null)
     {
-        $this->db->create($attributes ?: $this->getAttributesForDb());
+        $id = $this->db->create($attributes ?: $this->getAttributesForDb());
         if ($attributes) {
             $this->setAttributes($attributes);
         }
+        $this->id = $id;
         return $this;
     }
 

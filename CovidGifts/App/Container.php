@@ -133,11 +133,7 @@ class Container {
 
   public function singleton($name, $resolver)
   {   
-
-    \CovidGifts\Adapters\WP\Log::debug('Adding ' . $name . ' singleton...');
     static::$singletons[$name] = $this->autoinjectNewInstanceOf($resolver);
-    \CovidGifts\Adapters\WP\Log::debug('Done with ' . $name);
-
     return $this;
   }
 

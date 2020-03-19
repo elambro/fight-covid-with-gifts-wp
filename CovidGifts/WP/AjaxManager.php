@@ -4,7 +4,7 @@ namespace CovidGifts\WP;
 
 use CovidGifts\App\Contracts\Request;
 use CovidGifts\App\Requests\IntentFormRequest;
-use CovidGifts\App\Requests\UserFormRequest;
+use CovidGifts\App\Requests\PaymentFormRequest;
 use CovidGifts\WP\Enqueues;
 use CovidGifts\WP\ShortcodeManager;
 use WP_Error;
@@ -39,7 +39,22 @@ class AjaxManager {
     public function handleIntent()
     {
         ShortcodeManager::checkNonce();
-        return $this->handleRequest( new IntentFormRequest );
+        $response = $this->handleRequest( new IntentFormRequest );
+        return $this->handleResponse($response);
+    }
+
+    public function chargePurchase()
+    {
+        ShortcodeManager::checkNonce();
+        $response = $this->handleRequest( new PaymentFormRequest );
+        return $this->handleResponse($response);
+    }
+
+
+    private function handleResponse($data)
+    {
+        \wp_send_json_success($data);
+        \wp_die();
     }
 
     private function handleRequest(Request $request)
@@ -55,33 +70,6 @@ class AjaxManager {
         }
     }
 
-    public function chargePurchase()
-    {
-        ShortcodeManager::checkNonce();
-        return $this->handleRequest( new UserFormRequest );
-
-
-        // $model = new 
-
-        // error_log('2. created model');
-
-        $model->assignAttributes($_POST, 'u_');
-
-        $model->validate();
-
-
-        if ( !$model->save() ) {
-            $this->fail($this->errorMessage());
-        }
-
-        \wp_send_json_success([
-            'message'    => $this->successMessage(),
-            'attributes' => $model->getAttributes()
-        ]);
-
-        \wp_die();
-
-    }
 
     public static function fail( $message ) {
 
