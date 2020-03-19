@@ -1,0 +1,151 @@
+<html>
+    <head>
+        <title>Gift code widget generator</title>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <main id="app">
+            <h1>Gift code widget generator</h1>
+            <section class="generator">
+                <div class="input-wrapper">
+                    <label>Your business name</label>
+                    <input type="text" v-model.trim="businessName">
+                </div>
+                <div class="input-wrapper">
+                    <label>Your PayPal e-mail</label>
+                    <input type="email" placeholder="your@email.com" v-model.trim="email">
+                </div>
+                <div class="input-wrapper">
+                    <label>Gift certificate name</label>
+                    <input type="text" v-model.trim="giftCertificateName">
+                </div>
+                <div class="input-wrapper amounts">
+                    <label>Gift code amounts</label>
+                    <div class="row">
+                        <div class="amount">
+                            <label>Amount #1</label>
+                            <input type="number" v-model.trim="amount1">
+                        </div>
+                        <div class="amount">
+                            <label>Amount #2</label>
+                            <input type="number" v-model.trim="amount2">
+                        </div>
+                        <div class="amount">
+                            <label>Amount #3</label>
+                            <input type="number" v-model.trim="amount3">
+                        </div>
+                        <div class="amount">
+                            <label>Amount #4</label>
+                            <input type="number" v-model.trim="amount4">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Allow custom amounts (more than ${{ amount4 }})?</label>
+                    <select v-model="allowCustomAmount">
+                        <option :value="true">Yes</option>
+                        <option :value="false">No</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Currency code (<a href="https://developer.paypal.com/docs/api/reference/currency-codes/" target="_blank">list</a>)</label>
+                    <input class="short-input" type="text" v-model.trim="currencyCode">
+                </div>
+                <div class="input-wrapper">
+                    <label>Send e-mails after purchase?</label>
+                    <select v-model="sendEmails">
+                        <option :value="true">Yes</option>
+                        <option :value="false">No</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>URL for completed payments:</label>
+                    <input type="text" v-model.trim="returnURL">
+                </div>
+                <div class="input-wrapper">
+                    <label>URL for cancelled payments:</label>
+                    <input type="text" v-model.trim="cancelURL">
+                </div>
+            </section>
+            <hr>
+            <h2>Code:</h2>
+            <div class="alert" v-if="!businessName || !email || !giftCertificateName || !amount1 || !amount2 || !amount3 || !amount4 || !currencyCode || !returnURL || !cancelURL">⚠ Please complete all fields above before copying the code.</div>
+            <section class="output">&lt;form id="gift-form" style="display: flex; flex-direction: column; align-items: center" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post"&gt;
+    &lt;label style="display: block; font-weight: bold; margin-bottom: 10px"&gt;Your e-mail address&lt;/label&gt;
+    &lt;input class="email" style="display: block; padding: 8px 12px; height: 35px; border-radius: 3px; border: thin solid #CCC; width: 100%; max-width: 300px; margin-bottom: 15px" type="email" placeholder="your@email.com" autocomplete="email" onchange="document.querySelectorAll('#gift-form .custom')[0].value = document.querySelectorAll('#gift-form .email')[0].value + '|' + '{{ businessName }}'"&gt;
+    &lt;label style="display: block; font-weight: bold; margin-bottom: 10px"&gt;Which gift code would you like?&lt;/label&gt;
+    <template v-if="allowCustomAmount">
+    &lt;select style="display: block; padding: 8px 12px; height: 35px; border-radius: 3px; border: thin solid #CCC; width: 100%; max-width: 150px; margin-bottom: 15px" onchange="if (document.querySelectorAll('#gift-form select')[0].value === 'other') { document.querySelectorAll('#gift-form .amount')[0].style.display = 'block'; document.querySelectorAll('#gift-form .amount')[0].value = {{ amount4 }} } else { document.querySelectorAll('#gift-form .amount')[0].style.display = 'none'; document.querySelectorAll('#gift-form .amount')[0].value = document.querySelectorAll('#gift-form select')[0].value }"&gt;
+        &lt;option selected value="{{ amount1 }}"&gt;${{ amount1 }}&lt;/option&gt;
+        &lt;option value="{{ amount2 }}"&gt;${{ amount2 }}&lt;/option&gt;
+        &lt;option value="{{ amount3 }}"&gt;${{ amount3 }}&lt;/option&gt;
+        &lt;option value="{{ amount4 }}"&gt;${{ amount4 }}&lt;/option&gt;
+        &lt;option value="other"&gt;More than ${{ amount4 }}&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input style="display: none; padding: 8px 12px; height: 35px; border-radius: 3px; border: thin solid #CCC; width: 100%; max-width: 150px; margin: -10px 0 15px 0" type="number" name="amount" class="amount" value="{{ amount1 }}"&gt;
+    </template>
+    <template v-else>
+    &lt;select style="display: block; padding: 8px 12px; height: 35px; border-radius: 3px; border: thin solid #CCC; width: 100%; max-width: 150px; margin-bottom: 15px" name="amount"&gt;
+        &lt;option value="{{ amount1 }}"&gt;${{ amount1 }}&lt;/option&gt;
+        &lt;option value="{{ amount2 }}"&gt;${{ amount2 }}&lt;/option&gt;
+        &lt;option value="{{ amount3 }}"&gt;${{ amount3 }}&lt;/option&gt;
+        &lt;option value="{{ amount4 }}"&gt;${{ amount4 }}&lt;/option&gt;
+    &lt;/select&gt;
+    </template>
+    &lt;input type="hidden" name="business" value="{{ email }}"&gt;
+    &lt;input type="hidden" name="no_shipping" value="1"&gt;
+    &lt;input type="hidden" name="cmd" value="_xclick"&gt;
+    &lt;input type="hidden" name="item_name" value="{{ giftCertificateName }}"&gt;
+    &lt;input type="hidden" name="item_number" value="1"&gt;
+    &lt;input type="hidden" name="currency_code" value="{{ currencyCode }}"&gt;
+    <template v-if="sendEmails">&lt;input type="hidden" name="notify_url" value="{{ notifyURL }}"&gt;</template>
+    &lt;input type="hidden" name="cancel_return" value="{{ cancelURL }}"&gt;
+    &lt;input type="hidden" name="return" value="{{ returnURL }}"&gt;
+    &lt;input type="hidden" name="custom" class="custom"&gt;
+    &lt;button type="submit" style="padding: 8px 12px; -webkit-appearance: none; border: thin solid #CCC; border-radius: 3px;"&gt;Get the code&lt;/button&gt;
+&lt;/form&gt;
+<template v-if="returnURL === returnURLOriginal">
+&lt;script&gt;
+    window.onload = function () {
+        if (window.location.search.indexOf('gift') !== -1) document.getElementById('gift-form').innerHTML = '&lt;p style="text-align: center;"&gt;Thank you very much! We’ll e-mail you the gift code shortly. If there are any issues, please get in touch with us.&lt;/p&gt;';
+    }
+&lt;/script&gt;
+</template></section>
+        </main>
+
+        <script src="https://vuejs.org/js/vue.js"></script>
+
+        <script>
+
+            new Vue({
+                el: "#app",
+                data: {
+                    businessName: null,
+                    email: null,
+                    giftCertificateName: 'Gift Certificate',
+                    amount1: 5,
+                    amount2: 10,
+                    amount3: 15,
+                    amount4: 20,
+                    allowCustomAmount: true,
+                    currencyCode: 'USD',
+                    sendEmails: true,
+                    notifyURL: 'https://us-central1-astute-sky-191215.cloudfunctions.net/gift-ipn',
+                    returnURL: null,
+                    returnURLOriginal: null,
+                    cancelURL: null
+                },
+                created: function () {
+
+                    this.returnURL = window.location.href + '&gift=1';
+                    this.returnURLOriginal = window.location.href + '&gift=1';
+                    this.cancelURL = window.location.href;
+
+                }
+            });
+
+        </script>
+
+    </body>
+</html>
