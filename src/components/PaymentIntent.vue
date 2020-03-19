@@ -36,7 +36,7 @@
             },
             endpoint: {
                 type    : String,
-                required: false,
+                required: true,
             },
             amount: {
                 type: [Number,String],
@@ -49,7 +49,7 @@
             },
             currency: {
                 type: String,
-                default: 'USD'
+                required: true
             },
             symbol: {
                 type: String,

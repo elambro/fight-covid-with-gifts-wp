@@ -39,8 +39,8 @@
             Loading...
         </div>
 
-        <div v-else-if="tryAgain">
-            <button type="button" @click="retry">Retry</button>
+        <div v-else-if="paid">
+            Done!
         </div>
 
         <Messages ref="msg"></Messages>
@@ -126,7 +126,6 @@
                 clientSecret: null,
                 saving      : false,
                 paid        : false,
-                tryAgain    : true,
                 payload     : null, // Dev only!
             };
         },
@@ -150,8 +149,6 @@
             {
                 this.paid = true;
 
-                this.payload = payload;// Dev only!
-
                 if (this.saving) {
                     return
                 }
@@ -169,7 +166,8 @@
                 this.$api.post(this.endpointSave, payload)
                 .then( data => {
 
-                    console.log('Received data from back end.');
+                    alert('done!');
+                    console.log('Received data from back end.', data);
 
                 })
                 .catch( err => {

@@ -2046,7 +2046,6 @@ var DEBUG = false;
       clientSecret: null,
       saving: false,
       paid: false,
-      tryAgain: true,
       payload: null // Dev only!
 
     };
@@ -2066,7 +2065,6 @@ var DEBUG = false;
       var _this = this;
 
       this.paid = true;
-      this.payload = payload; // Dev only!
 
       if (this.saving) {
         return;
@@ -2082,7 +2080,8 @@ var DEBUG = false;
 
 
       this.$api.post(this.endpointSave, payload).then(function (data) {
-        console.log('Received data from back end.');
+        alert('done!');
+        console.log('Received data from back end.', data);
       }).catch(function (err) {
         _this.onError(err);
       }).finally(function () {
@@ -2196,7 +2195,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     endpoint: {
       type: String,
-      required: false
+      required: true
     },
     amount: {
       type: [Number, String],
@@ -2209,7 +2208,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     currency: {
       type: String,
-      default: 'USD'
+      required: true
     },
     symbol: {
       type: String
@@ -19962,14 +19961,8 @@ var render = function() {
           )
         : _vm.saving
         ? _c("div", [_vm._v("\n        Loading...\n    ")])
-        : _vm.tryAgain
-        ? _c("div", [
-            _c(
-              "button",
-              { attrs: { type: "button" }, on: { click: _vm.retry } },
-              [_vm._v("Retry")]
-            )
-          ])
+        : _vm.paid
+        ? _c("div", [_vm._v("\n        Done!\n    ")])
         : _vm._e(),
       _vm._v(" "),
       _c("Messages", { ref: "msg" })
