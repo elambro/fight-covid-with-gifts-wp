@@ -1,13 +1,12 @@
 <?php namespace CovidGifts\App\Requests;
 
 use CovidGifts\App\Abstracts\Request;
-use CovidGifts\App\Contracts\BuyerNotification;
+use CovidGifts\App\BuyerNotification;
 use CovidGifts\App\Contracts\Gateway;
 use CovidGifts\App\Contracts\GiftCertificate;
-use CovidGifts\App\Contracts\Payment;
 use CovidGifts\App\Contracts\Request as RequestInterface;
-use CovidGifts\App\Contracts\SellerNotification;
 use CovidGifts\App\Exceptions\ValidationException;
+use CovidGifts\App\SellerNotification;
 
 class PaymentFormRequest extends Request implements RequestInterface
 {
@@ -29,49 +28,71 @@ class PaymentFormRequest extends Request implements RequestInterface
 
     public function handle()
     {
+        cvdapp()->csrf()->check();
+
         $this->validate();
 
-        $input = $this->input();
+        $certif = $this->createCertificate();
 
-        app()->resolve(Gateway::class)->checkIntent($input);
+        $intent = $this->verifyPayment();
 
-        $payment = app()->resolve(Payment::class);
+        $certif->markPaid();
 
-        $payment->create([
-            'user_name'        => $input->name,
-            'user_email'       => $input->email,
-            'user_phone'       => $input->phone,
-            // 'payment_token' => $input->payment_id,
-            'payment_meta'     => ['intent_id' => $input->intent_id],
-            'payment_method'   => $input->method,
-            'payment_amount'   => $input->amount,
-            'payment_currency' => $input->currency,
-            'payment_status'   => $input->status,
-            'payment_id'       => $input->payment_id,
-            'paid_at'          => date('Y-m-d H:i:s'),
-        ]);
+        $email_sent = $this->sendNotifications($certif);
 
-        $certificate = app()->resolve(GiftCertificate::class)->createFromPayment($payment);
-        
-
-        $email_sent = false;
-
-        try {
-            app()->resolve(SellerNotification::class)->send($certificate);
-            if ($certificate->user_email) {
-                app()->resolve(BuyerNotification::class)->send($certificate->user_email, $certificate);
-                $email_sent = true;
-            }
-        } catch (\Exception $e) {
-            app()->log($e->getMessage());
-        }
+        $config = cvdapp()->config();
         
         return [
-            'amount'    => $payment->amount,
-            'gift_code' => $certificate->order_code,
-            'currency'  => $payment->currency,
-            'email_sent'=> $email_sent ? 1 : 0
+            'amount'     => $certif->payment_amount,
+            'company'    => $config->getSellerCompanyName(),
+            'gift_code'  => $certif->formattedCode(),
+            'currency'   => $certif->payment_currency,
+            'symbol'     => $config->getCurrencySymbol(),
+            'email_sent' => $email_sent ? 1 : 0
         ];
+    }
+
+    protected function verifyPayment()
+    {
+        $input = $this->input();
+
+        return cvdapp()->gateway()->checkIntent($input->intent_id, $input->amount, $input->currency);
+    }
+
+    protected function sendNotifications(GiftCertificate $certificate)
+    {
+       
+        $sent = false;
+
+        try {
+            
+            (new SellerNotification($certificate))->send();
+            
+            $sent = (new BuyerNotification($certificate))->send();
+
+        } catch (\Exception $e) {
+            cvdapp()->log($e->getMessage());
+        }
+
+        return $sent;
+    }
+
+    protected function createCertificate()
+    {
+        $input = $this->input();
+
+        return cvdapp()->resolve(GiftCertificate::class)->create([
+            'user_name'        => $input->name,
+            'user_email'       => $input->email,
+            'user_phone'       => $input->phone,        // $res->sender_phone
+            'intent_id'        => $input->intent_id,    // liqpay -> create this yourself
+            'payment_method'   => $input->method,       // 'liqpay_' . $res->paytype
+            'payment_id'       => $input->payment_id,   // $res->payment_id
+            'payment_status'   => $input->status,       // $res->status
+            'payment_amount'   => $input->amount,
+            'payment_currency' => $input->currency,
+            // 'payment_meta'
+        ]);
     }
 
     public function validate()
@@ -91,13 +112,21 @@ class PaymentFormRequest extends Request implements RequestInterface
         if (!$amount) {
             throw new ValidationException('validation.amount.required');
         }
-        $min = app()->resolve(GiftCertificate::class)->getMin();
+        $min = cvdapp()->config()->getMinPayment();
         if ($amount < $min) {
             throw new ValidationException('validation.amount.min', ['min' => $min]);   
         }
-        $max = app()->resolve(GiftCertificate::class)->getMax();
+        $max = cvdapp()->config()->getMaxPayment();
         if ($amount > $max) {
             throw new ValidationException('validation.amount.max', ['max' => $max]);   
+        }
+
+        $currency = strtolower($this->get('currency'));
+        if (!$currency) {
+            throw new ValidationException('validation.currency.required');
+        }
+        if (strlen($currency) !== 3 || strtolower(cvdapp()->config()->getCurrency()) !== $currency) {
+            throw new ValidationException('validation.currency.valid');
         }
 
         return true;

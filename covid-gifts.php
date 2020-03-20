@@ -11,18 +11,29 @@
 // require_once __DIR__ . '/.env.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
-\CovidGifts\Adapters\WP\Log::debug('Building app...');
-
-if (!function_exists('app')) {
-
-    function app() {
+if (!function_exists('cvdapp')) {
+    function cvdapp()
+    {
         return \CovidGifts\App::getInstance(__FILE__);
+    }
+} 
+    elseif ( !(cvdapp() instanceof \CovidGifts\App))
+{
+    throw new Exception('There is a clash with another plugin. This plugin needs to use function `cvdapp()`');
+}
+
+if (!function_exists('cvdapp_version')) {
+    function cvdapp_version()
+    {
+       return '1.0';
     }
 }
 
+if (!function_exists('cvdapp_root')) {
+    function cvdapp_root()
+    {
+       return __FILE__;
+    }
+}
 
-$app = app();
-
-\CovidGifts\Adapters\WP\Log::debug('Starting app...');
-
-$app->start();
+cvdapp()->start();

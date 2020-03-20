@@ -1,38 +1,46 @@
 <?php namespace CovidGifts\App;
 
-use CovidGifts\Container;
 use CovidGifts\App\Contracts\GiftCertificate;
 use CovidGifts\App\Contracts\Mailer;
-use CovidGifts\App\Contracts\SellerNotification as SellerNotificationInterface;
 
-class SellerNotification implements SellerNotificationInterface {
+class SellerNotification {
 
-    public static function send(GiftCertificate $giftCertificate, $to = '')
+    protected $certificate;
+
+    public function __construct(GiftCertificate $giftCertificate)
     {
-        $mailer = app()->resolve(Mailer::class);
-        return $mailer->sendToAdmin(static::getSubject($giftCertificate), static::getMessage($giftCertificate));
+        $this->certificate = $giftCertificate;
     }
 
-    private static function getSubject(GiftCertificate $giftCertificate)
+    public function send()
     {
-        return 'Gift Certificate Purchased - ' . $giftCertificate->payment_currency . ' ' . $giftCertificate->payment_amount;
+        $mailer = cvdapp()->resolve(Mailer::class);
+
+        $admin = cvdapp()->config()->getSellerEmail();
+        
+        return $mailer->send($admin, $this->getSubject(), $this->getMessage());
     }
 
-    private static function getMessage(GiftCertificate $giftCertificate)
+    private function getSubject()
+    {
+        return 'Gift Certificate Purchased - ' . $this->certificate->payment_currency . ' ' . $this->certificate->payment_amount;
+    }
+
+    private function getMessage()
     {
         ob_start();
         ?>
         A new gift certificate was purchased:
 
-        Amount:  <?php echo $giftCertificate->payment_currency . ' ' . $giftCertificate->payment_amount; ?>
+        Amount:  <?php echo $this->certificate->payment_currency . ' ' . $this->certificate->payment_amount; ?>
 
-        Name:  <?php echo $giftCertificate->user_name; ?>
+        Name:  <?php echo $this->certificate->user_name; ?>
 
-        Email: <?php echo $giftCertificate->user_email; ?>
+        Email: <?php echo $this->certificate->user_email; ?>
 
-        Phone: <?php echo $giftCertificate->user_phone; ?>
+        Phone: <?php echo $this->certificate->user_phone; ?>
 
-        Code: <?php echo CodeGenerator::format($giftCertificate->order_code); ?>
+        Code: <?php echo $this->certificate->formattedCode(); ?>
 
 
         <?php

@@ -1,23 +1,19 @@
 <?php
 namespace CovidGifts\Adapters\WP;
 
+use CovidGifts\Adapters\WP\Config;
 use CovidGifts\App\Contracts\Log as LogInterface;
 
 class Log implements LogInterface {
 
-    public function __construct()
+    public function debug($message, $array = null)
     {
-        // do nothing
-    }
-
-    public static function debug($message, $array = null)
-    {
-        if (static::isDebugging()) {
-            static::log($message, $array);
+        if (cvdapp()->config()->debug()) {
+            $this->log($message, $array);
         }
     }
 
-    public static function log($message, $array = null)
+    public function log($message, $array = null)
     {
         if (is_array($message) || is_object($message)) {
             error_log(print_r($message, true));
@@ -29,8 +25,4 @@ class Log implements LogInterface {
         }
     }
 
-    public static function isDebugging()
-    {
-        return true;
-    }
 }

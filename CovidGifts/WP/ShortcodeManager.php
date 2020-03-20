@@ -1,40 +1,26 @@
 <?php
 namespace CovidGifts\WP;
 
-use CovidGifts\WP\AjaxManager;
-// use CovidGifts\WP\Captcha;
-
 class ShortcodeManager {
 
     const SHORTCODE = 'sell-gift-certificates';
-    const NONCE_NAME = 'fight-covid-19-shortcode';
-    const NONCE_FIELD = 'nonce';
-    protected $version = '1.0';
+    protected $version;
 
-    public function __construct($root)
+    public function __construct()
     {
+        $root = cvdapp_root();
         $this->root = \plugin_dir_url($root);
+        $this->version = cvdapp_version();
         $this->attach_hooks();
     }
 
-    protected function getIntentAction()
+    public function handle( $atts, $content = null )
     {
-        return AjaxManager::$intent_action;
+        return $this->enqueue()->html();
     }
 
-    protected function getSaveAction()
+    protected function enqueue()
     {
-        return AjaxManager::$save_action;
-    }
-
-    protected function getEndpoints()
-    {
-        return [];
-    }
-
-    public function enqueue()
-    {
-
         $dependencies = array();
         \wp_enqueue_script( 'CovidGifts', $this->root . 'dist/index.js', $dependencies, $this->version );
         \wp_enqueue_style('Bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css', [], '4.4.1');
@@ -42,43 +28,41 @@ class ShortcodeManager {
         if ( $obj ) {
             \wp_localize_script('CovidGifts', 'ajax_object', $obj);
         }
+        return $this;
     }
 
     protected function attach_hooks()
     {
-
         \add_shortcode(static::SHORTCODE, array($this, 'handle'));
-    }
-
-    public function handle( $atts, $content = null ) {
-
-        $this->enqueue();
-
-        return $this->html();
-
     }
 
     protected function html()
     {
-        return '<div id="app"></div>';
-    }
-
-    public static function checkNonce()
-    {
-        check_ajax_referer(static::NONCE_NAME, static::NONCE_FIELD);
+        return '<div id="cvdapp"></div>';
     }
 
     protected function localizeScript()
     {
-        $nonce = wp_create_nonce(static::NONCE_NAME);        
+        $conf = cvdapp()->config();
+        $csrf = cvdapp()->csrf();
+
         return [
-            'nonce_data'       => $nonce,
-            'nonce_field'      => static::NONCE_FIELD,
-            'ajax_url'         => \admin_url( 'admin-ajax.php' ),
-            'save_action'      => $this->getSaveAction(),
-            'intent_action'    => $this->getIntentAction(),
-            'endpoint_intent'  => \admin_url( 'admin-ajax.php' ) . '?action=' . $this->getIntentAction(),
-            'endpoint_save'    => \admin_url( 'admin-ajax.php' ) . '?action=' . $this->getSaveAction()
+            'csrf_data'         => $csrf->getData(),
+            'csrf_field'        => $csrf->getField(),
+            
+            'endpoint_intent'   => $conf->getIntentEndpoint(),
+            'endpoint_save'     => $conf->getChargeEndpoint(),
+            
+            'locale'            => $conf->getLocale(),
+            'locale_fallback'   => $conf->getFallbackLocale(),
+            
+            'company'           => $conf->getSellerCompanyName(),
+            'default_amount'    => $conf->getDefaultGiftAmount(),
+            'seller_country'    => $conf->getSellerCountry(),
+            'currency'          => $conf->getCurrency(),
+            'currency_symbol'   => $conf->getCurrencySymbol(),
+            'stripe_public_key' => $conf->getStripePublic(),
+            'email_required'    => $conf->getEmailRequired(),
         ];
     }
 

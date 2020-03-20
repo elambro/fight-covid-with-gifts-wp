@@ -2,11 +2,15 @@
 <template>
     <div>
 
+        <Messages ref="msg"></Messages>
+
         <span v-if="$options.shareable" @click="share">Share</span>
 
+        <Spinner v-show="saving"></Spinner>
+
         <PaymentIntent
-            v-if="!clientSecret"
-            v-model="clientSecret"
+            v-if="!token"
+            v-model="token"
             :endpoint="endpointIntent"
             :amount.sync="amount"
             :currency="currency"
@@ -15,17 +19,18 @@
             @error="onError">
         </PaymentIntent>
 
-        <div v-else-if="!paid">
+        <div v-else>
 
             <div class="form-row mb-3">
                 {{ symbol || currency }} {{ amount }}
             </div>
 
             <StripeCheckout
+                v-show="!paid"
                 :country="country"
                 :currency="currency"
                 :amount="amount"
-                :client-secret="clientSecret"
+                :client-secret="token"
                 :endpoint="endpointSave"
                 :email-required="emailRequired"
                 :stripe-api-key="stripeApiKey"
@@ -33,17 +38,27 @@
                 @error="onError"
             ></StripeCheckout>
 
-        </div>
+            <div v-if="paid">
 
-        <div v-else-if="saving">
-            Loading...
-        </div>
+                <span class="completed">{{ $t('completed', trans_result) }}</span>
 
-        <div v-else-if="paid">
-            Done!
-        </div>
+<!--            <span v-if="result.email_sent">{{ $t('emailed', result) }}</span> -->
 
-        <Messages ref="msg"></Messages>
+                <div v-if="gift_code">
+                    {{ $t('gift_code', {gift_code}) }}
+
+                    <div class="gift_code">
+                        {{gift_code}}
+
+                        <QrCode :content="gift_code"></QrCode>
+
+                    </div>
+
+                </div>
+            
+            </div>
+        
+        </div>
 
     </div>
 
@@ -54,15 +69,17 @@
     import StripeCheckout from './Stripe/Checkout';
     import PaymentIntent  from './PaymentIntent';
     import Messages       from './Messages'
+    import Spinner        from './Spinner';
+    import QrCode         from './QrCode';
 
-    const WP = typeof ajax_object !== 'undefined' ? ajax_object : {};
+    const CONFIG = typeof ajax_object !== 'undefined' ? ajax_object : {};
 
     const DEBUG = false;
 
     export default {
 
         name: 'Covid',
-        components: {StripeCheckout, PaymentIntent, Messages},
+        components: {StripeCheckout, PaymentIntent, Messages, Spinner, QrCode},
 
         shareable: navigator.share,
 
@@ -70,16 +87,16 @@
             endpointSave: {
                 type    : String,
                 required: false,
-                default: WP.endpoint_save
+                default: CONFIG.endpoint_save
             },
             endpointIntent: {
                 type    : String,
                 required: false,
-                default: WP.endpoint_intent
+                default: CONFIG.endpoint_intent
             },
             defaultAmount: {
                 type: [Number,String],
-                default: process.env.MIX_PAYMENT_DEFAULT
+                default: CONFIG.default_amount,
             },
             /**
              * The seller's country code
@@ -87,7 +104,7 @@
              */
             country: {
                 type: String,
-                default: 'US'
+                default: CONFIG.seller_country || 'US'
             },
             /**
              * The currency code
@@ -95,7 +112,15 @@
              */
             currency: {
                 type: String,
-                default: process.env.MIX_PAYMENT_CURRENCY || 'USD'
+                default: CONFIG.currency || 'USD'
+            },
+            /**
+             * The company nbame
+             * @type {String}
+             */
+            company: {
+                type: String,
+                default: CONFIG.company || 'this company'
             },
             /**
              * The currency symbol
@@ -103,34 +128,45 @@
              */
             symbol: {
                 type: String,
-                default: process.env.MIX_CURRENCY_SYMBOL
+                default: CONFIG.currency_symbol
             },
 
             stripeApiKey: {
                 type: String,
                 required: false,
-                default: process.env.MIX_STRIPE_API_KEY || WP.stripe_public_key
+                default: CONFIG.stripe_public_key
             },
 
             emailRequired: {
                 type    : Boolean,
                 required: false,
-                default : false,
+                default : CONFIG.email_required || false,
             },
 
         },
 
         data() {
             return {
-                amount      : this.defaultAmount,
-                clientSecret: null,
-                saving      : false,
-                paid        : false,
-                payload     : null, // Dev only!
+                amount : this.defaultAmount,
+                token  : null,
+                saving : false,
+                paid   : false,
+                payload: null, // Dev only!
+                result : null,
             };
         },
-        mounted() {
-
+        computed: {
+            gift_code() {
+                return (this.result||{}).gift_code;
+            },
+            trans_result() {
+                return {
+                    amount: this.amount,
+                    currency: this.currency,
+                    symbol: this.symbol,
+                    ... this.result||{}
+                }
+            }
         },
         methods: {
             share()
@@ -152,40 +188,28 @@
                 if (this.saving) {
                     return
                 }
-    
-                // intent_id : paymentIntent.id,
-                // payment_id: ev.paymentMethod.id,
-                // method    : 'stripe-button',
-                // name      : ev.payerName, 
-                // email     : ev.payerEmail,
-                // phone     : ev.payerPhone,
-                // amount    : paymentIntent.amount,
-                // currency  : paymentIntent.currency,
-                // status    : paymentIntent.status
+
+                this.payload = payload;
 
                 this.$api.post(this.endpointSave, payload)
                 .then( data => {
-
-                    alert('done!');
-                    console.log('Received data from back end.', data);
-
+                    this.result = data;
                 })
                 .catch( err => {
                     this.onError(err);
-                    
                 })
                 .finally( () => this.saving = false );
             },
             onError(err)
             {
-                console.warn('App.vue received err', err);
+                // console.warn('App.vue received err', err);
 
                 let msg = this.$t('errors.whoops');
                 if (typeof err === 'string') {
                     msg = this.$t(err);
                 } else if ((err||{}).trans) {
                     msg = this.$t(err.trans, err.other || []);
-                } else if ((err||{}).message) {
+                } else if ( typeof (err||{}).message === 'string') {
                     msg = this.$t(err.message);
                 }
 
@@ -197,3 +221,14 @@
         }
     };
 </script>
+<style scoped>
+    .gift_code {
+        display    : block;
+        margin     : 20px auto;
+        text-align : center;
+        border     : 2px dashed #0073aa;
+        padding    : 20px;
+        font-size  : 1.5em;
+        font-weight: bold;
+    }
+</style>

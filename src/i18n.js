@@ -3,6 +3,8 @@ import Vue from 'vue';
 import VueI18n from 'vue-i18n'
 Vue.use(VueI18n)
 
+const CONFIG = typeof ajax_object !== 'undefined' ? ajax_object : {};
+
 function loadLocaleMessages () {
   const locales = require.context('./locales', true, /[A-Za-z0-9-_,\s]+\.json$/i)
   const messages = {}
@@ -17,8 +19,8 @@ function loadLocaleMessages () {
 }
 
 export default new VueI18n({
-  locale: process.env.MIX_I18N_LOCALE || 'en',
-  fallbackLocale: process.env.MIX_I18N_FALLBACK_LOCALE || 'en',
+  locale: CONFIG.locale || process.env.MIX_I18N_LOCALE || 'en',
+  fallbackLocale: CONFIG.local_fallback || process.env.MIX_I18N_FALLBACK_LOCALE || 'en',
   messages: loadLocaleMessages()
 })
 

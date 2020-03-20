@@ -1,8 +1,11 @@
 
 <template>
     <div>
-        <div class="alert" :class="`alert-${messageType}`" v-if="messageTran" role="alert">
-          {{ messageTran }}
+        <div class="alert  alert-dismissible fade show" :class="`alert-${messageType}`" v-show="messageTran" role="alert">
+          <span v-html="messageTran"></span>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close" @click="hide">
+              <span aria-hidden="true">&times;</span>
+          </button>
         </div>
     </div>
 </template>
@@ -14,13 +17,21 @@
             return {
                 messageTran  : null,
                 messageType  : null,
+                timeout: null
             };
         },
         methods: {
-            showMessage(type, message)
+            hide()
             {
+                this.messageTran = null;
+                this.timeout && clearTimeout(this.timeout);
+            },
+            showMessage(type, message, time = 7)
+            {
+                this.timeout && clearTimeout(this.timeout);
                 this.messageType = type;
                 this.messageTran = message;
+                this.timeout = setTimeout(()=>this.hide(), time*1000);
                 return false;
             }
         }

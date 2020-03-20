@@ -1,10 +1,9 @@
 <?php namespace CovidGifts\App;
 
-use CovidGifts\App\GiftCertificate;
-use CovidGifts\App\Payment;
-use CovidGifts\App\SqlManager;
 use CovidGifts\App\Contracts\DatabaseSchema;
+use CovidGifts\App\Contracts\GiftCertificate;
 use CovidGifts\App\Contracts\Migrations as MigrationsInterface;
+use CovidGifts\App\SqlManager;
 
 class Migrations implements MigrationsInterface {
 
@@ -17,39 +16,22 @@ class Migrations implements MigrationsInterface {
         $this->sql = $sql;
     }
 
-    protected function getPaymentTableName()
+    protected function getTableName()
     {
-        return Payment::getTable();
+        $c = cvdapp()->container->getResolver(GiftCertificate::class);
+        return $c::getTable();
     }
 
-    protected function getCertificateTableName()
+    public function createTable()
     {
-        return GiftCertificate::getTable();
-    }
-
-    public function createPaymentTable()
-    {
-        $table = $this->prefix().$this->getPaymentTableName();
-        $sql = $this->sql->createPaymentTable($table, $this->collation());
-        $this->schema->run($sql);        
-    }
-
-    public function createCertificateTable()
-    {
-        $table = $this->prefix().$this->getCertificateTableName();
-        $sql = $this->sql->createCertificateTable($table, $this->collation());
+        $table = $this->prefix().$this->getTableName();
+        $sql = $this->sql->createTable($table, $this->collation());
         $this->schema->run($sql);
     }
 
-    public function deletePaymentTable()
+    public function deleteTable()
     {
-        $table = $this->prefix().$this->getPaymentTableName();
-        $this->dropTable($table);
-    }
-
-    public function deleteCertificateTable()
-    {
-        $table = $this->prefix().$this->getCertificateTableName();
+        $table = $this->prefix().$this->getTableName();
         $this->dropTable($table);
     }
 

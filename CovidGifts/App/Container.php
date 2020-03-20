@@ -49,8 +49,6 @@ class Container {
       // \CovidGifts\Adapters\WP\Log::debug('Resolving ' . $class);
       $instance = $this->autoinjectNewInstanceOf($name);
 
-      \CovidGifts\Adapters\WP\Log::debug('Resolved ' . $name);
-
       return $instance;
   }
 

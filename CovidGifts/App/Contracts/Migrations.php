@@ -3,13 +3,8 @@ namespace CovidGifts\App\Contracts;
 
 interface Migrations {
 
-    public function createPaymentTable();
+    public function createTable();
 
-    public function createCertificateTable();
-
-    public function deletePaymentTable();
-
-    public function deleteCertificateTable();
-
+    public function deleteTable();
     
 }

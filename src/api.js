@@ -7,8 +7,8 @@ var csrf_value;
 
 if (typeof ajax_object !== 'undefined') {
     // This is WordPress.
-    var csrf_field = ajax_object.nonce_field;
-    var csrf_value = ajax_object.nonce_data;
+    var csrf_field = ajax_object.csrf_field;
+    var csrf_value = ajax_object.csrf_data;
 }
 
 export default {
@@ -17,6 +17,7 @@ export default {
     {
         options.params = params;
         return api().get(endpoint, options)
+            .then( response => this.formatResponse(response))
             .catch( err => Promise.reject(this.handleError(err)))
     },
 
@@ -31,7 +32,7 @@ export default {
     formatData(data)
     {
         let form = new FormData;
-        Object.keys(data).forEach(key => {
+        data && Object.keys(data).forEach(key => {
             form.append(key, data[key]);
         })
         if (csrf_field) {
@@ -52,6 +53,11 @@ export default {
     handleError(err)
     {
         if ((err||{}).response) {
+
+            if (typeof err.response.data === 'string') {
+                return err.response.data;
+            }
+
             let data = this.formatResponse(err.response);
             this.warn('Error response data:', data);
             if (data.trans) {

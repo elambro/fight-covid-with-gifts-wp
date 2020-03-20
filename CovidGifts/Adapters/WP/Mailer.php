@@ -9,11 +9,4 @@ class Mailer implements MailerInterface {
     {
         return \wp_mail($to, $subject, $message, $headers, $attachments);
     }
-
-    public function sendToAdmin($subject, $message, $to = '', $headers = '', $attachments = [])
-    {
-        $to = $to ?: \get_option('admin_email');
-        return $this->send($to, $subject, $message, $headers, $attachments);
-    }
-
 }

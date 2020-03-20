@@ -23,7 +23,7 @@
         <div class="d-sm-flex mt-5">
             <p class="flex-shrink-0">
                 <button type="submit" class="btn btn-primary btn-lg btn-block" :disabled="!canSubmit">
-                    <span v-if="busy">{{ $t('form.buttons.busy') }}</span>
+                    <span v-if="busy">{{ $t('form.buttons.saving') }}</span>
                     <span v-else>{{ $t('form.buttons.save') }}</span>
                 </button>
             </p>
@@ -90,14 +90,14 @@
                     return;
                 }
 
+                this.busy = true;
+
                 this.completePayment()
                 .then( ({error, paymentIntent}) => {
 
                     if (error) {
                         throw error;
                     }
-
-                    console.log('Payment result:', paymentIntent);
     
                     this.$emit('paid', {
                         payment_id: paymentIntent.payment_method,

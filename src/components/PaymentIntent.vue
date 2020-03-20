@@ -1,6 +1,6 @@
 
 <template>
-    <form v-else ref="form" method="post" :action="endpoint" @submit.prevent="submit">
+    <form ref="form" method="post" :action="endpoint" @submit.prevent="submit">
 
         <div class="form-row mb-3">
             <label class="col-md-3">{{ $t('intent.labels.amount') }}</label>
@@ -8,7 +8,7 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">{{ symbol || currency }}</span>
                 </div>
-                <input type="number" :step="stepSize" name="u_amount" v-model="modAmount" class="form-control" :placeholder="$t('intent.placeholders.amount', {symbol,amount})" />
+                <input type="number" :step="stepSize" name="u_amount" v-model="modAmount" class="form-control" :placeholder="amount" />
             </div>
         </div>
 
@@ -97,9 +97,9 @@
                 }
 
                 this.$api.post(this.endpoint, data)
-                .then( ({clientSecret}) => {
+                .then( ({token}) => {
                     this.$emit('update:amount', this.modAmount);
-                    this.$emit('input', clientSecret)
+                    this.$emit('input', token)
                 })                
                 .catch( err => this.$emit('error', err))
                 .finally( () => this.saving = false )

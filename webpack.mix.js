@@ -13,6 +13,14 @@ let mix = require('laravel-mix');
 
 mix.js('src/index.js', 'dist/');
 
+mix.js('src/options.js', 'dist/');
+
+mix.webpackConfig({
+    node: {
+       fs: "empty"
+    }
+});
+
 // mix.extract(vendorLibs);
 // mix.browserSync('my-site.test');
 // mix.combine(files, destination);

@@ -16,7 +16,7 @@ class Stripe implements Gateway
 
     public function createIntent($amount, $currency, $meta)
     {
-        app()->log('Creating stripe intent... for ' . $currency . ' ' . $amount);
+        // cvdapp()->debug('Creating stripe intent... for ' . $currency . ' ' . $amount);
 
         try {
             $intent = \Stripe\PaymentIntent::create([
@@ -32,30 +32,30 @@ class Stripe implements Gateway
         return $intent->client_secret;
     }
 
-    public function checkIntent($payload)
+    public function checkIntent($intent_id, $amount, $currency)
     {
 
         try {
 
-            $intent = \Stripe\PaymentIntent::retrieve($payload->intent_id);
-            $confirmed = $intent->confirm();
-            app()->log('Confirmed:', $confirmed);
+            $intent = \Stripe\PaymentIntent::retrieve($intent_id);
+            // $confirmed = $intent->confirm();
+            // cvdapp()->debug('Confirmed:', $confirmed);
 
 
         } catch (\Stripe\Exception\ApiErrorException $e) {
 
-            app()->debug('Handling api exception:' . $e->getMessage());
+            // cvdapp()->debug('Handling api exception:' . $e->getMessage());
 
             $this->handleException($e);
         }
 
-        app()->debug('got passed the intent.');
+        // cvdapp()->debug('got passed the intent.');
 
-        if ($intent->amount !== $payload->amount * 100) {
+        if ($intent->amount !== $amount * 100) {
             throw new PaymentException('errors.payment');
         }
 
-        if ($intent->currency !== strtolower($payload->currency)) {
+        if ($intent->currency !== strtolower($currency)) {
             throw new PaymentException('errors.payment');
         }
 
@@ -66,6 +66,7 @@ class Stripe implements Gateway
             throw new PaymentException('errors.payment');
         }
 
+        return $intent;
     }
 
     public function register()
@@ -75,7 +76,7 @@ class Stripe implements Gateway
         // 
         // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
 
-        \Stripe\ApplePayDomain::create([ 'domain_name' => app()->domain() ]);
+        \Stripe\ApplePayDomain::create([ 'domain_name' => cvdapp()->domain() ]);
     }
 
     private function checkForNextAction($intent)
@@ -91,12 +92,12 @@ class Stripe implements Gateway
     private function handleException($e)
     {
         $msg = $e->getMessage();
-        app()->log('Error: ' . $msg);
+        cvdapp()->log('Error: ' . $msg);
         
         if (strpos($msg, 'Invalid API Key') !== false) {
             $trans = 'errors.missing-key';
         } elseif (strpos($msg, 'previously confirmed') !== false ) {
-            app()->log('Previously confirmed...');
+            cvdapp()->log('Previously confirmed...');
             return;
         } else {
             $trans = 'errors.gateway';

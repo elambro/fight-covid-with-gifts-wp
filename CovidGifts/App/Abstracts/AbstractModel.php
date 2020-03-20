@@ -1,6 +1,5 @@
 <?php namespace CovidGifts\App\Abstracts;
 
-use CovidGifts\App\Container;
 use CovidGifts\App\Contracts\Database;
 
 abstract class AbstractModel {
@@ -18,7 +17,7 @@ abstract class AbstractModel {
         }
         $this->setAttributes($attributes);
 
-        $c = app()->container->getResolver(Database::class);
+        $c = cvdapp()->container->getResolver(Database::class);
         $this->db = new $c($this->table);
     }
 
@@ -44,7 +43,7 @@ abstract class AbstractModel {
 
     public function update($attributes = null)
     {
-        $this->db->update($attributes ?: $this->getAttributesForDb());
+        $this->db->update($attributes ?: $this->getAttributesForDb(), $this->id);
         if ($attributes) {
             $this->setAttributes($attributes);
         }
@@ -91,7 +90,7 @@ abstract class AbstractModel {
 
     protected static function DB()
     {
-        $c = app()->container->getResolver(Database::class);
+        $c = cvdapp()->container->getResolver(Database::class);
         return new $c(static::getTable());
     }
 

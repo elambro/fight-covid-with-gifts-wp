@@ -1,32 +1,47 @@
 <?php namespace CovidGifts\App;
 
-use CovidGifts\Container;
-use CovidGifts\App\Contracts\BuyerNotification as Contract;
 use CovidGifts\App\Contracts\GiftCertificate;
 use CovidGifts\App\Contracts\Mailer;
 
-class BuyerNotification implements Contract {
+class BuyerNotification {
 
-    public static function send($buyer, GiftCertificate $giftCertificate)
+    protected $certificate;
+
+    protected $company;
+
+    public function __construct(GiftCertificate $giftCertificate)
     {
-        $mailer = app()->resolve(Mailer::class);
-        return $mailer->send( $buyer, static::getSubject($giftCertificate), static::getMessage($giftCertificate) );
+        $this->certificate = $giftCertificate;
+        $this->company = cvdapp()->config()->getSellerCompanyName();
     }
 
-    private static function getSubject(GiftCertificate $giftCertificate, $company)
+    public function send()
     {
-        return 'Your Gift Certificate - ' . $giftCertificate->payment_currency . ' ' . $giftCertificate->payment_amount . ' for ' . $company;
+        $mailer = cvdapp()->resolve(Mailer::class);
+
+        $to = $this->certificate->user_email;
+
+        if (!$to) {
+            return false;
+        }
+
+        return $mailer->send( $to, $this->getSubject(), $this->getMessage() );
     }
 
-    private static function getMessage(GiftCertificate $giftCertificate, $company)
+    private function getSubject()
+    {
+        return 'Your Gift Certificate - ' . $this->certificate->payment_currency . ' ' . $this->certificate->payment_amount . ' for ' . $this->company;
+    }
+
+    private function getMessage()
     {
         ob_start();
         ?>
-        Here is your gift certificate for <?php echo $company; ?>:
+        Here is your gift certificate for <?php echo $this->company; ?>:
 
-        Amount:  <?php echo $giftCertificate->payment_currency . ' ' . $giftCertificate->payment_amount; ?>
+        Amount: <?php echo $this->certificate->payment_currency . ' ' . $this->certificate->payment_amount; ?>
 
-        Code: <?php echo CodeGenerator::format($giftCertificate->order_code); ?>
+        Code: <?php echo $this->certificate->formattedCode(); ?>
 
         <?php
         return ob_get_clean();

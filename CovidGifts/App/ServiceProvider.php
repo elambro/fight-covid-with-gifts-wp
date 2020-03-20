@@ -1,34 +1,40 @@
 <?php namespace CovidGifts\App;
 
 use CovidGifts\App\Container;
+use CovidGifts\App\Contracts\CSRF;
+use CovidGifts\App\Contracts\Config;
+use CovidGifts\App\Contracts\Gateway;
 use CovidGifts\App\Contracts\Log;
+use CovidGifts\App\Services\Stripe;
 
 class ServiceProvider {
 
+    protected $root;
     protected $bind = [];
     protected $singletons = [];
     protected static $instance;
 
     public $container;
 
-    public function __construct()
+    public function __construct($root)
     {
-
-        \CovidGifts\Adapters\WP\Log::debug('Creating SP');
+        $this->root = $root;
 
         $this->container = Container::getInstance();
-        
-        \CovidGifts\Adapters\WP\Log::debug('binding');
+
         foreach ($this->bind as $interface => $class) {
             $this->container->bind($interface, $class);
         }
 
-        \CovidGifts\Adapters\WP\Log::debug('singletons');
         foreach ($this->singletons as $interface => $class) {
             $this->container->singleton($interface, $class);
         }
 
-        \CovidGifts\Adapters\WP\Log::debug('done.');
+        $this->container->bind(\CovidGifts\App\Contracts\GiftCertificate::class, \CovidGifts\App\GiftCertificate::class);
+
+        $this->container->singleton(\CovidGifts\App\Contracts\Migrations::class, \CovidGifts\App\Migrations::class);
+
+        $this->registerGateway();
     }
 
     public function resolve($class)
@@ -41,9 +47,44 @@ class ServiceProvider {
         return $this->resolve(Log::class)->log($message, $array);
     }
 
+    public function config()
+    {
+        return $this->resolve(Config::class);
+    }
+
+    public function csrf()
+    {
+        return $this->resolve(CSRF::class);
+    }
+
     public function debug($message, $array = null)
     {
         return $this->resolve(Log::class)->debug($message, $array);
+    }
+
+    public function domain()
+    {
+        $protocols = array('http://', 'http://www.', 'www.');
+        return str_replace($protocols, '', $this->config()->siteUrl());
+    }
+
+    protected function registerGateway()
+    {
+        $gatewayName = $this->config()->getGatewayName();
+
+        switch ($gatewayName) {
+            case 'stripe':
+            default:
+                $className = Stripe::class;
+                break;
+        }
+
+        $this->container->singleton(Gateway::class, $className);
+    }
+
+    public function gateway()
+    {
+        return  $this->resolve(Gateway::class);
     }
 
     /**
@@ -59,6 +100,7 @@ class ServiceProvider {
 
         return static::$instance;
     }
+
 
 
 

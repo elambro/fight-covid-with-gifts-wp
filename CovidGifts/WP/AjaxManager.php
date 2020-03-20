@@ -2,88 +2,57 @@
 
 namespace CovidGifts\WP;
 
+use CovidGifts\Adapters\WP\Config;
 use CovidGifts\App\Contracts\Request;
 use CovidGifts\App\Requests\IntentFormRequest;
 use CovidGifts\App\Requests\PaymentFormRequest;
-use CovidGifts\WP\Enqueues;
-use CovidGifts\WP\ShortcodeManager;
-use WP_Error;
 
 class AjaxManager {
 
-    public static $save_action   = 'buy_covid_cert';
-    public static $intent_action = 'intent_covid_cert';
-
-	/**
-	 * [$endpoints description]
-	 * @var Array
-	 */
-	protected $endpoints = [
-		'buy_covid_cert' => 'chargePurchase',
-        'intent_covid_cert' => 'handleIntent'
-	];
-
     public function __construct()
     {
-		$this->attach_hooks();
+        $this->on(Config::$intent_action, 'handleIntent');
+		$this->on(Config::$charge_action, 'handleCharge');
     }
 
-    protected function successMessage() {
-        return "Your gift cert request was sent";
-    }
-
-    protected function errorMessage() {
-        return 'Sorry, there was a problem building your gift certificate. Please let us know.';
+    protected function on($action, $method)
+    {
+        \add_action('wp_ajax_'.$action, [$this, $method]);
+        \add_action('wp_ajax_nopriv_'.$action, [$this, $method]);
     }
 
     public function handleIntent()
     {
-        ShortcodeManager::checkNonce();
-        $response = $this->handleRequest( new IntentFormRequest );
-        return $this->handleResponse($response);
+        $response = $this->request( new IntentFormRequest );
+        return $this->respond($response);
     }
 
-    public function chargePurchase()
+    public function handleCharge()
     {
-        ShortcodeManager::checkNonce();
-        $response = $this->handleRequest( new PaymentFormRequest );
-        return $this->handleResponse($response);
+        $response = $this->request( new PaymentFormRequest );
+        return $this->respond($response);
     }
 
 
-    private function handleResponse($data)
+    private function respond($data)
     {
         \wp_send_json_success($data);
         \wp_die();
     }
 
-    private function handleRequest(Request $request)
+    private function request(Request $request)
     {
         try {
             return $request->handle();
         } catch (\Exception $e) {
             if ($e instanceof \CovidGifts\App\Contracts\Exception) {
                 \wp_send_json_error($e->toArray(), $e->getCode());
+                \wp_die();
             } else {
                 throw $e;
             }
         }
     }
-
-
-    public static function fail( $message ) {
-
-        \wp_send_json_error( $message, 422 );
-        \wp_die();
-    }
-
-	protected function attach_hooks()
-    {
-		foreach ( $this->endpoints as $action => $endpoint ) {
-			\add_action('wp_ajax_'.$action, [$this, $endpoint]);
-            \add_action('wp_ajax_nopriv_'.$action, [$this, $endpoint]);
-		}
-	}
 
     public static function export( $csv, $filename )
     {

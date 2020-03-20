@@ -1,5 +1,10 @@
 {
     "product": "Gift Certificate",
+    "loading": "Loading...",
+
+    "completed": "Thank you for purchasing a gift certificate for {company} in the amount of {symbol} {amount}.",
+    "gift_code": "Your code is {gift_code}. Please copy it for safe keeping.",
+
 
     "form": {
         "labels": {
@@ -9,7 +14,6 @@
             "cc": "Payment Card"
         },
         "placeholders": {
-            "amount" : "{symbol} {amount}",
             "name": "e.g. Jane Smith",
             "email": "your@email.com",
             "phone": "Optional"
@@ -67,6 +71,46 @@
         },
         "token": {
             "required": "The payment token was lost. Please try again."
+        }
+    },
+    "admin": {
+        "labels": {
+            "seller_company_name": "Your business name",
+            "seller_email": "Your email address",
+            "seller_country": "Country",
+            "locale": "Locale",
+            "currency": "Currency Code",
+            "currency_symbol": "Currency Symbol",
+            "default_gift_amount": "Default Price",
+            "min_payment": "Min price",
+            "max_payment": "Max price",
+            "email_required": "Email required",
+            "gateway_name": "Payment Gateway",
+            "stripe_public": "Stripe Public API Key",
+            "stripe_secret": "Stripe Secret API Key",
+            "liqpay_public": "LiqPay Public API Key",
+            "liqpay_secret": "LiqPay Secret API Key"
+        },
+        "help": {
+            "seller_company_name": "The name that should appear on the gift certificate",
+            "seller_email": "The email we will use when a new certificate is purchased",
+            "seller_country": "The country your business is registered in",
+            "locale": "The code of the language to display (e.g. en, fr, de, ru)",
+            "currency": "The 3 letter currency code (e.g. USD)",
+            "currency_symbol": "The symbol for the currency (e.g. $, USD)",
+            "default_gift_amount": "The amount that appears when the page loads",
+            "min_payment": "The minimum amount allowed for a gift certificate",
+            "max_payment": "The maximum amount allowed for a gift certificate",
+            "email_required": "Should the buyer be required to enter an email address?",
+            "gateway_name": "Select which gateway will collect your payments.",
+            "stripe_public": "Enter the public API key from your Stripe dashboard",
+            "stripe_secret": "Enter the secret API key from your Stripe dashboard",
+            "liqpay_public": "Enter the public API key from your LiqPay dashboard",
+            "liqpay_secret": "Enter the secret API key from your LiqPay dashboard"
+        },
+        "buttons": {
+            "save": "Save",
+            "saving": "Saving ..."
         }
     }
 }

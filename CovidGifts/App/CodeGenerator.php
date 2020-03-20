@@ -1,8 +1,6 @@
 <?php namespace CovidGifts\App;
 
-use CovidGifts\App\Contracts\CodeGenerator as CodeGeneratorInterface;
-
-class CodeGenerator implements CodeGeneratorInterface {
+class CodeGenerator {
 
     private $size = 12;
 

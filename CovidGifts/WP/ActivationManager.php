@@ -18,22 +18,20 @@ class ActivationManager {
 
     public static function activate()
     {
-        $db = app()->resolve(Migrations::class);
-        $db->createPaymentTable();
-        $db->createCertificateTable(); 
+        $db = cvdapp()->resolve(Migrations::class);
+        $db->createTable();
 
         static::setupPaymentGateway();
     }
 
     public static function deactivate()
     {
-        $db = app()->resolve(Migrations::class);
-        $db->deleteCertificateTable();
-        $db->deletePaymentTable();
+        $db = cvdapp()->resolve(Migrations::class);
+        $db->deleteTable();
     }
 
     private static function setupPaymentGateway()
     {
-        app()->resolve(Gateway::class)->register();
+        cvdapp()->gateway()->register();
     }
 }

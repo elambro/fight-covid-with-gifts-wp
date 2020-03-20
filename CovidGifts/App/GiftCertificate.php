@@ -1,30 +1,27 @@
 <?php namespace CovidGifts\App;
 
 use CovidGifts\App\Abstracts\AbstractModel;
-use CovidGifts\App\Contracts\CodeGenerator;
+use CovidGifts\App\CodeGenerator;
 use CovidGifts\App\Contracts\GiftCertificate as GiftCertificateInterface;
 use CovidGifts\App\Contracts\Model;
-use CovidGifts\App\Contracts\Payment;
 
 class GiftCertificate extends AbstractModel implements GiftCertificateInterface, Model {
 
     protected $table = 'c19_gift_certificates';
 
-    public function getPayment()
+    protected $generator;
+
+    public function create($attributes = null)
     {
-        if ($this->payment_id) {
-            return app()->resolve(Payment::class)->find($this->payment_id);
+        if ($attributes && !isset($attributes['gift_code'])) {
+            $attributes['gift_code'] = $this->generator()->random();
         }
+        return parent::create($attributes);
     }
 
-    public function getMin()
+    public function formattedCode()
     {
-        return 1; // @todo @config
-    }
-
-    public function getMax()
-    {
-        return 1000; // @todo @config
+        return $this->generator()->format($this->gift_code);
     }
 
     public function qr()
@@ -34,12 +31,26 @@ class GiftCertificate extends AbstractModel implements GiftCertificateInterface,
 
     public function markUsed()
     {
-        $this->update(['used_at' => date('Y-m-d H:i:s')]);
+        $this->update(['used_at' => $this->now()]);
+        return $this;
+    }
+
+    public function markPaid()
+    {
+        $this->update(['paid_at' => $this->now()]);
+        return $this;
     }
 
     public function markCancelled()
     {
-        $this->update(['cancelled_at' => date('Y-m-d H:i:s')]);
+        $this->update(['cancelled_at' => $this->now()]);
+        return $this;
+    }
+
+    public function updateStatus($status)
+    {
+        $this->update(['status' => $status]);
+        return $this;
     }
 
     public static function findByCode($code)
@@ -48,17 +59,17 @@ class GiftCertificate extends AbstractModel implements GiftCertificateInterface,
         return $result ? new static( $result ) : null;
     }
 
-    public function createFromPayment(Payment $payment)
+    protected function generator()
     {
-        return $this->create([
-            'user_name' => $payment->user_name,
-            'user_email' => $payment->user_email,
-            'user_phone' => $payment->user_phone,
-            'order_code' => app()->resolve(CodeGenerator::class)->random(),
-            'payment_id' => $payment->id,
-            'payment_amount' => $payment->payment_amount,
-            'payment_currency' => $payment->payment_currency
-        ]);
+        if (!$this->generator) {
+            $this->generator = new CodeGenerator;
+        }
+        return $this->generator;
+    }
+
+    private function now()
+    {
+        return date('Y-m-d H:i:s');
     }
 
 }

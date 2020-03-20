@@ -11,7 +11,7 @@ Vue.config.devtools = true;
 import API from './api';
 Object.defineProperty(Vue.prototype, '$api', { value: API });
 
-import App  from './components/App.vue';
+import App  from './components/Options.vue';
 import i18n from './i18n';
 
 window.onload = function () {
