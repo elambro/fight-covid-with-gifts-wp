@@ -1,9 +1,9 @@
 <?php
 namespace CovidGifts\WP;
 
+use CovidGifts\App\Contracts\GiftCertificate;
 use CovidGifts\WP\AdminManager;
 use CovidGifts\WP\AjaxManager;
-use CovidGifts\WP\SubmissionModel;
 
 if( ! class_exists( 'WP_List_Table' ) ) {
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -28,36 +28,38 @@ class ModelListTable extends \WP_List_Table {
 
     public function getTitle()
     {
-        return 'Water Whizzes';
+        return 'Gift Certificates';
     }
 
-    public function get_columns() {
-
-        $fake = new SubmissionModel();
-        $columns_keys = array_keys( $fake->getAttributes() );
-        $columns = array('cb'  => '<input type="checkbox" />');//array('<input type="checkbox" />', false));
-        foreach ( $columns_keys as $key ) {
-            $columns[$key] = ucwords(str_replace('_', ' ', $key));// array( ucwords(str_replace('_', ' ', $key) ), true );
-        }
-        $columns['actions'] = 'Actions';
-
-        if (isset($columns['hash'])) {
-            unset($columns['hash']);
-        }
-
-        return $columns;
-
+    public function get_columns()
+    {
+        return [
+            'cb'             => '<input type="checkbox" />',
+            'id'             => 'ID',
+            'user_name'      => 'Name',
+            'user_email'     => 'Email',
+            'user_phone'     => 'Phone',
+            'gift_code'      => 'Code',
+            'payment_method' => 'Method',
+            'payment_status' => 'Status',
+            'payment_amount' => 'Amount',
+            'used_at'        => 'Used',
+            'cancelled_at'   => 'Cancelled',
+            'paid_at'        => 'Paid',
+            'accepted_at'    => 'Accepted'
+        ];
     }
 
     public function column_default( $item, $column_name ) {
 
-        $deleteUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$delete_list_item_action . "&id={$item->id}";
-        $approveUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$approve_list_item_action . "&id={$item->id}";
-        $disapproveUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$disapprove_list_item_action . "&id={$item->id}";
+        // $deleteUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$delete_list_item_action . "&id={$item->id}";
+        // $approveUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$approve_list_item_action . "&id={$item->id}";
+        // $disapproveUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$disapprove_list_item_action . "&id={$item->id}";
 
         switch ( $column_name ) {
-            case 'email':
-                return '<a href="mailto:'.\esc_attr($item->email).'">'.\esc_html($item->email).'</a>';
+            case 'user_email':
+                return '<a href="mailto:'.\esc_attr($item->user_email).'">'.\esc_html($item->user_email).'</a>';
+
             case 'actions':
                 $delete = '<a href="'.$deleteUrl.'" class="ajaxLink deleteListItem" style="color:red">Delete</a>';
 
@@ -70,19 +72,11 @@ class ModelListTable extends \WP_List_Table {
 
             case 'cb':
                 return '<input type="checkbox" data-id="'.\esc_attr($item->id).'" />';
-            case 'photos':
-                $strs = array_map(function ($photo) {
-                    if (!$photo || !is_object($photo) || !isset($photo->url)) {
-                        return '';
-                    }
-                    return '<a href="' . $photo->url . '" target="_blank">IMG</a>';
-                }, $item->photos ?: []);
-                return implode(' | ', $strs);
-            case 'story':
-                return $this->shortenString($item->story);
-            case 'approved_at':
-            case 'created_at':
-            case 'updated_at':
+
+            case 'accepted_at':
+            case 'paid_at':
+            case 'cancelled_at':
+            case 'used_at':
                 return '<span title="' . \esc_attr($item->$column_name) . '">'.$this->niceTime($item->$column_name).'</span>';
             default:
                 return \esc_html($item->$column_name);
@@ -112,7 +106,7 @@ class ModelListTable extends \WP_List_Table {
 
         $this->_column_headers = $this->get_column_info();
 
-        $this->items = SubmissionModel::all();
+        $this->items = cvdapp()->resolve(GiftCertificate::class)->all();
 
     }
 

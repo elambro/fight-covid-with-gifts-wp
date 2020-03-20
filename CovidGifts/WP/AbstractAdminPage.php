@@ -54,4 +54,24 @@ abstract class AbstractAdminPage {
         });
         return $this;
     }
+
+    protected function respond($data)
+    {
+        \wp_send_json_success($data);
+        \wp_die();
+    }
+
+    protected function ajaxUrl($action)
+    {
+        return \admin_url( 'admin-ajax.php' ) . "?action={$action}";
+    }
+
+    protected function getAjaxObject()
+    {
+        $var = [];
+        foreach ($this->endpoints as $action => $handler) {
+            $var[$action] = $this->ajaxUrl($action);
+        }
+        return $var;
+    }
 }
