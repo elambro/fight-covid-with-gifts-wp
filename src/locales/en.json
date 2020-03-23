@@ -45,7 +45,11 @@
         "gateway" : "There was a problem connecting to the payment gateway.",
         "connection": "Sorry, we could not connect to our server. Please try again later.",
         "invalid": "Please check your input and try again.",
-        "payment": "Your payment status was invalid"
+        "payment": "Your payment status was invalid",
+        "cannot-use": "That certificate cannot be marked as used until it is paid and accepted.",
+        "cannot-accept": "That certificate cannot be accepted until paid.",
+        "cannot-cancel": "That certificate cannot be cancelled",
+        "cannot-delete": "That certificate cannot be deleted."
     },
     "validation": {
         "name": {
@@ -109,8 +113,9 @@
             "liqpay_secret": "Enter the secret API key from your LiqPay dashboard"
         },
         "buttons": {
-            "save": "Save",
+            "save": "Save Options",
             "saving": "Saving ..."
-        }
+        },
+        "saved": "The options were saved"
     }
 }

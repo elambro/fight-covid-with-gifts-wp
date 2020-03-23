@@ -44,10 +44,10 @@ class PaymentFormRequest extends Request implements RequestInterface
         
         return [
             'amount'     => $certif->payment_amount,
-            'company'    => $config->getSellerCompanyName(),
+            'company'    => $config->seller_company_name,
             'gift_code'  => $certif->formattedCode(),
             'currency'   => $certif->payment_currency,
-            'symbol'     => $config->getCurrencySymbol(),
+            'symbol'     => $config->currency_symbol,
             'email_sent' => $email_sent ? 1 : 0
         ];
     }
@@ -97,6 +97,8 @@ class PaymentFormRequest extends Request implements RequestInterface
 
     public function validate()
     {
+        $config = cvdapp()->config();
+
         $required = ['intent_id', 'payment_id', 'method', 'name', 'amount', 'currency', 'status'];
         foreach ($required as $attribute) {
             if (!$this->get($attribute)) {
@@ -112,11 +114,11 @@ class PaymentFormRequest extends Request implements RequestInterface
         if (!$amount) {
             throw new ValidationException('validation.amount.required');
         }
-        $min = cvdapp()->config()->getMinPayment();
+        $min = $config->min_payment;
         if ($amount < $min) {
             throw new ValidationException('validation.amount.min', ['min' => $min]);   
         }
-        $max = cvdapp()->config()->getMaxPayment();
+        $max = $config->max_payment;
         if ($amount > $max) {
             throw new ValidationException('validation.amount.max', ['max' => $max]);   
         }
@@ -125,7 +127,7 @@ class PaymentFormRequest extends Request implements RequestInterface
         if (!$currency) {
             throw new ValidationException('validation.currency.required');
         }
-        if (strlen($currency) !== 3 || strtolower(cvdapp()->config()->getCurrency()) !== $currency) {
+        if (strlen($currency) !== 3 || strtolower($config->currency) !== $currency) {
             throw new ValidationException('validation.currency.valid');
         }
 

@@ -46,7 +46,8 @@ class ModelListTable extends \WP_List_Table {
             'used_at'        => 'Used',
             'cancelled_at'   => 'Cancelled',
             'paid_at'        => 'Paid',
-            'accepted_at'    => 'Accepted'
+            'accepted_at'    => 'Accepted',
+            'actions'        => 'Actions'
         ];
     }
 
@@ -57,21 +58,25 @@ class ModelListTable extends \WP_List_Table {
         // $disapproveUrl = \admin_url( 'admin-ajax.php' ) . '?action=' . AdminManager::$disapprove_list_item_action . "&id={$item->id}";
 
         switch ( $column_name ) {
+            case 'cb':
+                return '<input type="checkbox" data-id="'.\esc_attr($item->id).'" />';
+
             case 'user_email':
                 return '<a href="mailto:'.\esc_attr($item->user_email).'">'.\esc_html($item->user_email).'</a>';
 
+            case 'user_phone':
+                return '<a href="tel:'.\esc_attr($item->user_email).'">'.\esc_html($item->user_email).'</a>';
+
+            case 'gift_code': 
+                return $item->formattedCode();            
+
             case 'actions':
-                $delete = '<a href="'.$deleteUrl.'" class="ajaxLink deleteListItem" style="color:red">Delete</a>';
+                return '<actions id="'.\esc_attr($item->id).'" :attributes="'. \esc_attr(json_encode($item->getAttributes())).'"></actions>';
 
-                if ($item->isApproved()) {
-                    $approve = '<a href="'.$disapproveUrl.'" class="ajaxLink unapproveListItem">Unapprove</a>';
-                } else {
-                    $approve = '<a href="'.$approveUrl.'" class="ajaxLink approveListItem">Approve</a>';
-                }
-                return $approve . ' | ' . $delete;
+            case 'payment_amount':
+                return strtoupper($item->payment_currency) . ' ' . $item->payment_amount;
 
-            case 'cb':
-                return '<input type="checkbox" data-id="'.\esc_attr($item->id).'" />';
+
 
             case 'accepted_at':
             case 'paid_at':

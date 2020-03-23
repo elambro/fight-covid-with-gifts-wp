@@ -33,10 +33,22 @@ export default {
     {
         let form = new FormData;
         data && Object.keys(data).forEach(key => {
-            form.append(key, data[key]);
+            let val = data[key];
+
+            if (val === 'null') {
+                val = null;
+            } else if (val === 'false' || val === false) {
+                val = 0;
+            } else if (val === 'true' || val === true) {
+                val = 1;
+            }
+            
+            form.append(key, val);
         })
         if (csrf_field) {
             form.append(csrf_field, csrf_value);
+        } else {
+            console.warn('No nonce was found!', ajax_object);
         }
         return form;
     },

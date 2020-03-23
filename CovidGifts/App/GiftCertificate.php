@@ -35,15 +35,33 @@ class GiftCertificate extends AbstractModel implements GiftCertificateInterface,
         return $this;
     }
 
+    public function markUnused()
+    {
+        $this->update(['used_at' => null]);
+        return $this;
+    }
+
     public function markPaid()
     {
-        $this->update(['paid_at' => $this->now()]);
+        $this->update(['paid_at' => $this->now(), 'cancelled_at' => null]);
+        return $this;
+    }
+
+    public function markUnpaid()
+    {
+        $this->update(['paid_at' => null, 'accepted_at' => null]);
         return $this;
     }
 
     public function markCancelled()
     {
-        $this->update(['cancelled_at' => $this->now()]);
+        $this->update(['cancelled_at' => $this->now(), 'accepted_at' => null]);
+        return $this;
+    }
+
+    public function markAccepted()
+    {
+        $this->update(['cancelled_at' => null, 'accepted_at' => $this->now()]);
         return $this;
     }
 

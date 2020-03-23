@@ -51,24 +51,6 @@ class AdminManager {
             }
 		});
 
-		\add_action( 'load-'. $this->hookSuffix, array( $this, 'screenOptions' ) );
-	}
-
-	public function screenOptions()
-    {	
-		echo "DOING SCREEN OPTIONS";
-    }
-
-    protected function localizeScript()
-    {
-        $conf = cvdapp()->config();
-        $csrf = cvdapp()->csrf();
-
-        return [
-            'csrf_data'         => $csrf->getData(),
-            'csrf_field'        => $csrf->getField(),
-        ];
-    }
-	
-        
+		// \add_action( 'load-'. $this->hookSuffix, array( $this, 'screenOptions' ) );
+	}        
 }

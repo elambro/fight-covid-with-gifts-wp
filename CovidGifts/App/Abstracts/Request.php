@@ -5,7 +5,7 @@ abstract class Request {
     protected $posted;
     protected $method;
 
-    public function __construct($attributes = [])
+    public function __construct()
     {
         $this->posted = $this->build();
         $this->method = filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_ENCODED);
@@ -58,6 +58,11 @@ abstract class Request {
     protected function postedFloat($attribute)
     {
         return filter_input(INPUT_POST, $attribute, FILTER_SANITIZE_NUMBER_FLOAT);
+    }
+
+    protected function postedInt($attribute)
+    {
+        return filter_input(INPUT_POST, $attribute, FILTER_SANITIZE_NUMBER_INT);
     }
 
     protected function postedArray($attribute)

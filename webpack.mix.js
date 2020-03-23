@@ -12,8 +12,8 @@ let mix = require('laravel-mix');
  */
 
 mix.js('src/index.js', 'dist/');
-
 mix.js('src/options.js', 'dist/');
+mix.js('src/table.js', 'dist/');
 
 mix.webpackConfig({
     node: {

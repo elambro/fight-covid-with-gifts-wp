@@ -13,7 +13,7 @@ class PaymentException extends \RuntimeException implements Exception
         $this->trans = $translationKey;
         $this->other = $other;
 
-        parent::__construct($e->getMessage(), 400, $e);
+        parent::__construct( $e ? $e->getMessage() : '', 400, $e);
     }
 
     public function toArray()

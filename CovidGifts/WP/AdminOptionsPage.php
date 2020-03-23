@@ -19,11 +19,9 @@ class AdminOptionsPage extends AbstractAdminPage {
         'save_options' => 'saveConfigOptions',
     ];
 
-    public function __construct()
+    protected function enqueue()
     {
-        parent::__construct();
-
-        $this->addScript('/dist/options.js', $this->getAjaxObject());
+        $this->addScript('dist/options.js', $this->getAjaxObject());
         $this->addBootstrap();
     }
 
@@ -35,13 +33,13 @@ class AdminOptionsPage extends AbstractAdminPage {
 
     public function fetchConfigOptions()
     {
-
         $options = cvdapp()->config()->all();
         return $this->respond($options);
     }
 
     public function saveConfigOptions()
     {
+        cvdapp()->debug('Saving options...');
         $response = (new ConfigFormRequest)->handle();
         return $this->respond($response);
     }

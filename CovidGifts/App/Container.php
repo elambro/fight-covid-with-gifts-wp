@@ -54,6 +54,9 @@ class Container {
 
   private function autoinjectNewInstanceOf($class)
   {
+
+      // (new \CovidGifts\Adapters\WP\Log)->log('Resolving ' . $class);
+
       $reflector = new \ReflectionClass($this->getResolver($class));
 
       if( ! $reflector->isInstantiable())

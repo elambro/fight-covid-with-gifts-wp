@@ -53,16 +53,16 @@ class ShortcodeManager {
             'endpoint_intent'   => $conf->getIntentEndpoint(),
             'endpoint_save'     => $conf->getChargeEndpoint(),
             
-            'locale'            => $conf->getLocale(),
-            'locale_fallback'   => $conf->getFallbackLocale(),
+            'locale'            => $conf->locale,
+            'locale_fallback'   => $conf->fallback_locale,
             
-            'company'           => $conf->getSellerCompanyName(),
-            'default_amount'    => $conf->getDefaultGiftAmount(),
-            'seller_country'    => $conf->getSellerCountry(),
-            'currency'          => $conf->getCurrency(),
-            'currency_symbol'   => $conf->getCurrencySymbol(),
-            'stripe_public_key' => $conf->getStripePublic(),
-            'email_required'    => $conf->getEmailRequired(),
+            'company'           => $conf->seller_company_name,
+            'default_amount'    => $conf->default_gift_amount,
+            'seller_country'    => $conf->seller_country,
+            'currency'          => $conf->currency,
+            'currency_symbol'   => $conf->currency_symbol,
+            'stripe_public_key' => $conf->stripe_public,
+            'email_required'    => $conf->email_required,
         ];
     }
 

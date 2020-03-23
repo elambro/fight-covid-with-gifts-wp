@@ -10,11 +10,8 @@ class ConfigFormRequest extends Request implements RequestInterface
     public function handle()
     {
         cvdapp()->csrf()->check();
-        
         $this->validate();
-
         $this->saveOptions();
-
         return ['options' => $this->input()];
     }
 
@@ -22,7 +19,12 @@ class ConfigFormRequest extends Request implements RequestInterface
     {
         $c = cvdapp()->config();
         $c->fill($this->input())->save();
-        return $c->all();
+
+        $all = $c->all();
+
+        cvdapp()->debug('All values are:', $all);
+
+        return $all;
     }
 
     public function build()

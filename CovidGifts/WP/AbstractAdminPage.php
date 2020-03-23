@@ -20,6 +20,7 @@ abstract class AbstractAdminPage {
         $this->version = cvdapp_version(); 
         $this->root = \plugin_dir_url(cvdapp_root());
         $this->attach_hooks();
+        $this->enqueueScripts();
 	}
 
     abstract public function handle();
@@ -36,22 +37,42 @@ abstract class AbstractAdminPage {
         }
 	}
 
-    protected function addScript($path, $obj)
+    private function endsWith($haystack, $needle)
     {
-        \add_action( 'admin_enqueue_scripts', function () use ($path, $obj) {
-            \wp_enqueue_script( 'CovidGifts'.$path, $this->root . $path, [], $this->version );
-            if ( $obj ) {
-                \wp_localize_script('CovidGifts'.$path, 'ajax_object', $obj);
+        $length = strlen($needle);
+        if ($length == 0) {
+            return true;
+        }
+        return (substr($haystack, -$length) === $needle);
+    }
+
+    private function isHook($hook)
+    {
+        return $this->endsWith($hook, static::$slug);
+    }
+
+    protected function enqueueScripts()
+    {
+        \add_action( 'admin_enqueue_scripts', function ($hook) {
+            if ($this->isHook($hook)) {
+                $this->enqueue();
             }
         });
         return $this;
     }
 
+    protected function addScript($path, $obj)
+    {
+        \wp_enqueue_script( 'CovidGifts'.$path, $this->root . $path, [], $this->version );
+        if ( $obj ) {
+            \wp_localize_script('CovidGifts'.$path, 'ajax_object', $obj);
+        }
+        return $this;
+    }
+
     protected function addBootstrap()
     {
-        \add_action( 'admin_enqueue_scripts', function () {
-            \wp_enqueue_style('Bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css', [], '4.4.1');
-        });
+        \wp_enqueue_style('Bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css', [], '4.4.1');
         return $this;
     }
 
@@ -72,6 +93,13 @@ abstract class AbstractAdminPage {
         foreach ($this->endpoints as $action => $handler) {
             $var[$action] = $this->ajaxUrl($action);
         }
+
+        // $conf = cvdapp()->config();
+        $csrf = cvdapp()->csrf();
+
+        $var['csrf_field'] = $csrf->getField();
+        $var['csrf_data'] = $csrf->getData();
+
         return $var;
     }
 }

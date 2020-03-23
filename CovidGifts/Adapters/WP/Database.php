@@ -1,6 +1,7 @@
 <?php namespace CovidGifts\Adapters\WP;
 
 use CovidGifts\App\Contracts\Database as DatabaseInterface;
+use CovidGifts\App\Exceptions\PaymentException;
 
 class Database implements DatabaseInterface {
 
@@ -24,9 +25,15 @@ class Database implements DatabaseInterface {
         return $this->db->insert_id;
     }
 
-    public function update($id, $attributes)
+    public function update($attributes, $id)
     {
         $result = $this->db->update( $this->table, $attributes, ['id' => $id]);
+
+        cvdapp()->log('Updating ' . $this->table . ' where id is ' . $id, $attributes);
+
+        if ($this->db->last_error) {
+            throw new PaymentException($this->db->last_error);
+        }
         return !$result || $this->db->last_error !== '' ? false : true;
     }
 
@@ -44,8 +51,13 @@ class Database implements DatabaseInterface {
 
     public function all($orderby = null, $order = null)
     {
-        list($sql, $bindings) = $this->addOrder("SELECT * FROM {$this->table}", [], $orderby, $order);
-        return $this->db->get_results($this->db->prepare($sql, $bind), ARRAY_A);
+        $sql = "SELECT * FROM {$this->table}";
+        if ($orderby || $order) {
+            list($sql, $bindings) = $this->addOrder("SELECT * FROM {$this->table}", [], $orderby, $order);
+            $sql = $this->db->prepare($sql, $bindings);
+        }
+
+        return $this->db->get_results($sql, ARRAY_A);
     }
 
     protected function addOrder($sql, $bindings, $orderby, $order)

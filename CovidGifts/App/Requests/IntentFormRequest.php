@@ -40,15 +40,17 @@ class IntentFormRequest extends Request implements RequestInterface
 
     public function validate()
     {
+        $config = cvdapp()->config();
+
         $amount = $this->get('amount');
         if (!$amount) {
             throw new ValidationException('validation.amount.required');
         }
-        $min = cvdapp()->config()->getMinPayment();
+        $min = $config->min_payment;
         if ($amount < $min) {
             throw new ValidationException('validation.amount.min', ['min' => $min]);   
         }
-        $max = cvdapp()->config()->getMaxPayment();
+        $max = $config->max_payment;
         if ($amount > $max) {
             throw new ValidationException('validation.amount.max', ['max' => $max]);   
         }
@@ -57,7 +59,7 @@ class IntentFormRequest extends Request implements RequestInterface
         if (!$currency) {
             throw new ValidationException('validation.currency.required');
         }
-        if (strlen($currency) !== 3 || strtolower(cvdapp()->config()->getCurrency()) !== $currency) {
+        if (strlen($currency) !== 3 || strtolower($config->currency) !== $currency) {
             throw new ValidationException('validation.currency.valid');
         }
 

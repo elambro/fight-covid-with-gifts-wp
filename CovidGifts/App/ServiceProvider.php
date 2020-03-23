@@ -70,7 +70,7 @@ class ServiceProvider {
 
     protected function registerGateway()
     {
-        $gatewayName = $this->config()->getGatewayName();
+        $gatewayName = $this->config()->gateway_name;
 
         switch ($gatewayName) {
             case 'stripe':

@@ -16,7 +16,7 @@ class SellerNotification {
     {
         $mailer = cvdapp()->resolve(Mailer::class);
 
-        $admin = cvdapp()->config()->getSellerEmail();
+        $admin = cvdapp()->config()->seller_email;
         
         return $mailer->send($admin, $this->getSubject(), $this->getMessage());
     }

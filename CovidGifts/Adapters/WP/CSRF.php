@@ -15,12 +15,12 @@ class CSRF implements CSRFInterface {
 
     public function getData()
     {
-        return wp_create_nonce(static::NONCE_NAME);
+        return \wp_create_nonce(static::NONCE_NAME);
     }
 
     public function check()
     {
-        check_ajax_referer(static::NONCE_NAME, static::NONCE_FIELD);
+        \check_ajax_referer(static::NONCE_NAME, static::NONCE_FIELD);
     }
 
 }

@@ -12,7 +12,7 @@ class BuyerNotification {
     public function __construct(GiftCertificate $giftCertificate)
     {
         $this->certificate = $giftCertificate;
-        $this->company = cvdapp()->config()->getSellerCompanyName();
+        $this->company = cvdapp()->config()->seller_company_name;
     }
 
     public function send()

@@ -2,6 +2,7 @@
 
 namespace CovidGifts\WP;
 
+use CovidGifts\App\Requests\CertificateRequest;
 use CovidGifts\WP\AbstractAdminPage;
 use CovidGifts\WP\ModelListTable;
 
@@ -12,16 +13,18 @@ class AdminMainPage extends AbstractAdminPage {
     public static $slug   = 'covid-gifts-main';
 
     protected $endpoints = [
-        'cvdapp_cancel'  => 'markCertAsCancelled',
-        'cvdapp_approve' => 'markCertAsApproved',
-        'cvdapp_use'     => 'markCertAsUsed',
+        'cvdapp_cancel' => 'markCertAsCancelled',
+        'cvdapp_accept' => 'markCertAsAccepted',
+        'cvdapp_use'    => 'markCertAsUsed',
+        'cvdapp_unuse'  => 'markCertAsUnused',
+        'cvdapp_paid'   => 'markCertAsPaid',
+        'cvdapp_unpaid' => 'markCertAsUnpaid',
+        'cvdapp_delete' => 'markCertAsDeleted',
     ];
 
-    public function __construct()
+    protected function enqueue()
     {
-        parent::__construct();
-
-        $this->addScript('/dist/table.js', $this->getAjaxObject());
+        $this->addScript('dist/table.js', $this->getAjaxObject());
         $this->addBootstrap();
     }
 
@@ -31,42 +34,80 @@ class AdminMainPage extends AbstractAdminPage {
 
         $table = new ModelListTable();
         $table->prepare_items();
-        $count = count( $table->items );
         $this->printTable($table);
 
         // echo '<div style="padding: 30px"><div id="cvdapp"></div></div>';
     }
 
-    public function markCertAsCancelled()
+    private function handleRequest($action)
     {
-        // @todo
+        $request = new CertificateRequest($action);
+
+        try {
+            $response = $request->handle();
+        } catch (\Exception $e) {
+            if ($e instanceof \CovidGifts\App\Contracts\Exception) {
+                \wp_send_json_error($e->toArray(), $e->getCode());
+                \wp_die();
+            } else {
+                throw $e;
+            }
+        }
+
+        return $this->respond($response);
     }
 
-    public function markCertAsApproved()
+    public function markCertAsCancelled()
     {
-        // @todo
+        return $this->handleRequest('cancel');
+    }
+
+    public function markCertAsAccepted()
+    {
+        return $this->handleRequest('accept');
     }
 
     public function markCertAsUsed()
     {
-        // @todo
+        return $this->handleRequest('use');
+    }
+
+    public function markCertAsDeleted()
+    {
+        return $this->handleRequest('delete');
+    }
+
+    public function markCertAsPaid()
+    {
+        return $this->handleRequest('paid');
+    }
+
+    public function markCertAsUnpaid()
+    {
+        return $this->handleRequest('unpaid');
+    }
+
+    public function markCertAsUnused()
+    {
+        return $this->handleRequest('unused');
     }
 
     private function printTable($table)
     {
+        $count = count( $table->items );
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . $table->getTitle() . '</h1>';
         echo '<span class="title-count theme-count">'.$count.'</span>';
         // echo '<a class="page-title-action" href="' . \admin_url( 'admin-ajax.php' ) . '?action=' . $this->exportAction . '" target="_blank">Export All</a>';
         // echo '<a class="page-title-action" href="' . \admin_url( 'admin-ajax.php' ) . '?action=' . $this->mailAction . '" target="_blank">Email All</a>';
         echo '<hr class="wp-header-end">';
 
-        echo '<div id="table-cvdapp"><form id="full-list-form" method="get">';
+        echo '<div id="cvdapp"><form id="full-list-form" method="get"><cvdapp-table>';
 
         $table->display();
 
-        echo '</form></div></div>';
+        echo '</cvdapp-table></form></div></div>';
 
-        add_action('admin_footer', [$this, 'footerScript']);
+        // add_action('admin_footer', [$this, 'footerScript']);
     }
 
     public function footerScript()

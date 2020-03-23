@@ -16,7 +16,7 @@ class LiqPay implements Gateway
 
     public function __construct( Config $config)
     {
-        $this->liqpay = new \LiqPay($config->getLiqpayPublic(), $config->getLiqpaySecret());
+        $this->liqpay = new \LiqPay($config->liqpay_public, $config->liqpay_secret);
     }
 
     private function checkSignature($signature, $data)
@@ -26,7 +26,7 @@ class LiqPay implements Gateway
 
     private function createSignature($data)
     {
-        $key = cvdapp()->config()->getLiqpaySecret();
+        $key = cvdapp()->config()->liqpay_secret;
         return base64_encode(sha1($key.$data.$key,1));
     }
 

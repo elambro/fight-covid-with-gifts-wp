@@ -4,7 +4,9 @@
 
         <Messages ref="msg"></Messages>
 
-        <Spinner v-show="saving"></Spinner>
+        <div style="position:absolute">
+            <Spinner v-show="saving"></Spinner>
+        </div>
 
         <form ref="form" method="post" :action="endpointSave" @submit.prevent="submit">
 
@@ -20,7 +22,7 @@
             <div class="form-row mb-3">
                 <label class="col-md-3">{{ $t('admin.labels.seller_company_name') }}</label>
                 <div class="col-md-9">
-                    <input type="text" name="seller_company_name" v-model="settings.seller_company_name" class="form-control" />
+                    <input type="text" name="seller_company_name" v-model="seller_company_name" class="form-control" />
                     <small class="form-text text-muted">{{ $t('admin.help.seller_company_name') }}</small>
                 </div>
             </div>
@@ -164,8 +166,8 @@
 
 <script>
     
-    import Messages       from './Messages'
-    import Spinner        from './Spinner';
+    import Messages       from './../Messages'
+    import Spinner        from './../Spinner';
 
     const CONFIG = typeof ajax_object !== 'undefined' ? ajax_object : {};
 
@@ -191,6 +193,13 @@
             this.fetch()
         },
 
+        computed: {
+            seller_company_name: {
+                get() { return this.settings.seller_company_name;},
+                set(v) { this.settings.seller_company_name = v; }
+            }
+        },
+
         data() {
             return {
                 settings: {},
@@ -207,9 +216,7 @@
             {
                 this.saving = true;
                 this.$api.get(this.endpointFetch)
-                .then(data => {
-                    this.settings = data;
-                })
+                .then(data => this.setSettings(data))
                 .catch(err => this.onError(err))
                 .finally(() => this.saving = false)
             },
@@ -218,15 +225,28 @@
                 this.saving = true;
                 this.$api.post(this.endpointSave, this.settings)
                 .then(data => {
-                    this.settings = data;
+                    this.setSettings(data.options)
+                    this.$refs.msg.showMessage('success',this.$t('admin.saved'));
                 })
                 .catch(err => this.onError(err))
                 .finally(() => this.saving = false);
             },
+            setSettings(data)
+            {
+                Object.keys(data).forEach(k => {
+                    let v = data[k];
+                    if ('false' === v) {
+                        data[k] = false;
+                    } else if ('0' === v) {
+                        data[k] = 0;
+                    } else if ('null' === v) {
+                        data[k] = null;
+                    }
+                });
+                this.settings = data;
+            },
             onError(err)
             {
-                console.warn('Options.vue received err', err);
-
                 let msg = this.$t('errors.whoops');
                 if (typeof err === 'string') {
                     msg = this.$t(err);
