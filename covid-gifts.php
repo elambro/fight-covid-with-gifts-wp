@@ -11,6 +11,10 @@
 // require_once __DIR__ . '/.env.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
+if (!defined('COVID_COUPONS_ROOT')) {
+  define('COVID_COUPONS_ROOT', dirname(__FILE__));
+}
+
 if (!function_exists('cvdapp')) {
     function cvdapp()
     {

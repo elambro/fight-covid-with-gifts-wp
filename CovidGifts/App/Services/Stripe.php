@@ -69,13 +69,28 @@ class Stripe implements Gateway
         return $intent;
     }
 
-    public function register()
+    public function register($root = null)
     {
-        // @todo - Move /wp/CovidGifts/apple-pay-domain-file to be available from 
+        // Move /wp/CovidGifts/apple-pay-domain-file to be available from 
         // https://example.com/.well-known/apple-developer-merchantid-domain-association
-        // 
-        // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
+        try {        
+            $dir = get_home_path().'.well-known';
+            if (!is_dir($dir)) {
+                mkdir($dir, 755, true);
+            }
 
+            copy( COVID_COUPONS_ROOT . '/apple-pay-domain-file', $dir.'/apple-developer-merchantid-domain-association');
+        
+        } catch (\Throwable $e) {
+            add_action( 'admin_notices', function () {
+                $class = 'notice notice-error';
+                $message = __( 'Covid Coupon failed to setup your developer file for an Apple Pay button. See ' . 
+                    'https://stripe.com/docs/apple-pay/web/v2#going-live', 'sample-text-domain' );
+                printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
+            });
+        }
+
+        // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
         \Stripe\ApplePayDomain::create([ 'domain_name' => cvdapp()->domain() ]);
     }
 

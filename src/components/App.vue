@@ -13,7 +13,7 @@
             v-model="token"
             :endpoint="endpointIntent"
             :amount.sync="amount"
-            :currency="currency"
+            :currency="currency.toLowerCase()"
             :country="country"
             :symbol="symbol"
             @error="onError">
@@ -28,7 +28,7 @@
             <StripeCheckout
                 v-show="!paid"
                 :country="country"
-                :currency="currency"
+                :currency="currency.toLowerCase()"
                 :amount="amount"
                 :client-secret="token"
                 :endpoint="endpointSave"
@@ -140,7 +140,7 @@
             emailRequired: {
                 type    : Boolean,
                 required: false,
-                default : CONFIG.email_required || false,
+                default : CONFIG.email_required?true:false,
             },
 
         },

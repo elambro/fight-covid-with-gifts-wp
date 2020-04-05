@@ -2073,7 +2073,7 @@ var DEBUG = false;
     emailRequired: {
       type: Boolean,
       required: false,
-      default: CONFIG.email_required || false
+      default: CONFIG.email_required ? true : false
     }
   },
   data: function data() {
@@ -2600,42 +2600,56 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     clientSecret: {
       type: String,
       required: true
+    },
+    description: {
+      type: String,
+      required: false,
+      default: 'Covid Coupon'
     }
   },
   data: function data() {
     return {
-      paymentRequest: null
+      paymentRequest: null,
+      canMakePayment: null,
+      button: null,
+      hidden: null
     };
   },
   mounted: function mounted() {
     var _this = this;
 
-    this.createPaymentRequest();
-    this.createButton();
-    this.paymentRequest.on('paymentmethod',
-    /*#__PURE__*/
-    function () {
-      var _ref = _asyncToGenerator(
-      /*#__PURE__*/
-      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee(ev) {
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                return _context.abrupt("return", _this.handlePaymentEvent(ev));
+    this.createPaymentRequest().then(function () {
+      return _this.createButton();
+    }).then(function (mounted) {
+      if (mounted) {
+        _this.paymentRequest.on('paymentmethod',
+        /*#__PURE__*/
+        function () {
+          var _ref = _asyncToGenerator(
+          /*#__PURE__*/
+          _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee(ev) {
+            return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+              while (1) {
+                switch (_context.prev = _context.next) {
+                  case 0:
+                    return _context.abrupt("return", _this.handlePaymentEvent(ev));
 
-              case 1:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee);
-      }));
+                  case 1:
+                  case "end":
+                    return _context.stop();
+                }
+              }
+            }, _callee);
+          }));
 
-      return function (_x) {
-        return _ref.apply(this, arguments);
-      };
-    }());
+          return function (_x) {
+            return _ref.apply(this, arguments);
+          };
+        }());
+      }
+    }).catch(function (err) {
+      (console || {}).warn && console.warn('Failed to mount payment button.', err);
+    });
   },
   methods: {
     createPaymentRequest: function createPaymentRequest() {
@@ -2648,7 +2662,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _this2.paymentRequest = _this2.stripe.paymentRequest({
+                _context2.next = 2;
+                return _this2.stripe.paymentRequest({
                   country: _this2.country,
                   currency: _this2.currency.toLowerCase(),
                   total: {
@@ -2660,7 +2675,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                   requestPayerPhone: true
                 });
 
-              case 1:
+              case 2:
+                _this2.paymentRequest = _context2.sent;
+                return _context2.abrupt("return");
+
+              case 4:
               case "end":
                 return _context2.stop();
             }
@@ -2674,60 +2693,31 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(
       /*#__PURE__*/
       _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee3() {
-        var _ref2, confirmError, _ref3, error, paymentIntent;
-
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _context3.next = 2;
-                return _this3.stripe.confirmCardPayment(_this3.clientSecret, {
+                // FYI: const {shippingOption, shippingAddress, payerEmail, payerName, methodName, paymentMethod} = ev
+                // See https://stripe.com/docs/api/payment_methods/object
+                // Confirm the PaymentIntent without handling potential next actions (yet).
+                (console || {}).log && console.log('Button Payment event:', ev); // Confirm the PaymentIntent without handling potential next actions (yet).
+                // https://stripe.com/docs/js/payment_intents/confirm_card_payment
+
+                return _context3.abrupt("return", _this3.stripe.confirmCardPayment(_this3.clientSecret, {
                   payment_method: ev.paymentMethod.id
                 }, {
                   handleActions: false
-                });
+                }).then(function (confirmResult1) {
+                  return _this3.handleFirstConfirmation(ev, confirmResult1);
+                }).then(function (confirmResult2) {
+                  return _this3.handleSecondConfirmation(confirmResult2);
+                }).then(function (paymentIntent) {
+                  return _this3.paymentIsSuccessful(ev, paymentIntent);
+                }).catch(function (err) {
+                  (console || {}).warn && console.warn('Payment event failed', err);
+                }));
 
               case 2:
-                _ref2 = _context3.sent;
-                confirmError = _ref2.error;
-
-                if (!confirmError) {
-                  _context3.next = 8;
-                  break;
-                }
-
-                ev.complete('fail');
-                _context3.next = 15;
-                break;
-
-              case 8:
-                ev.complete('success');
-                _context3.next = 11;
-                return _this3.stripe.confirmCardPayment(_this3.clientSecret);
-
-              case 11:
-                _ref3 = _context3.sent;
-                error = _ref3.error;
-                paymentIntent = _ref3.paymentIntent;
-
-                if (error) {
-                  _this3.$emit('error', error);
-                } else {
-                  // ev -- https://stripe.com/docs/js/appendix/payment_response
-                  _this3.$emit('paid', {
-                    intent_id: paymentIntent.id,
-                    payment_id: ev.paymentMethod.id,
-                    method: 'stripe-button',
-                    name: ev.payerName,
-                    email: ev.payerEmail,
-                    phone: ev.payerPhone,
-                    amount: paymentIntent.amount / 100,
-                    currency: paymentIntent.currency,
-                    status: paymentIntent.status
-                  });
-                }
-
-              case 15:
               case "end":
                 return _context3.stop();
             }
@@ -2735,47 +2725,160 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }, _callee3);
       }))();
     },
-    createButton: function createButton() {
+    handleFirstConfirmation: function handleFirstConfirmation(ev, _ref2) {
       var _this4 = this;
 
+      var error = _ref2.error,
+          paymentIntent = _ref2.paymentIntent;
       return _asyncToGenerator(
       /*#__PURE__*/
       _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee4() {
-        var elements, button;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                elements = _this4.stripe.elements(_this4.$options.elementOptions);
-                button = elements.create('paymentRequestButton', {
-                  paymentRequest: _this4.paymentRequest
+                // See https://stripe.com/docs/api/payment_intents
+                (console || {}).log && console.log('Button confirm result:', {
+                  error: error,
+                  paymentIntent: paymentIntent
                 });
 
-                if (!_this4.paymentRequest.canMakePayment()) {
-                  _context4.next = 10;
+                if (!error) {
+                  _context4.next = 8;
                   break;
                 }
 
-                _context4.prev = 3;
-                button.mount(_this4.$refs.button);
-                return _context4.abrupt("return", true);
+                paymentIntent = _this4.isAlreadyPaidError(error);
+
+                if (!paymentIntent) {
+                  _context4.next = 6;
+                  break;
+                }
+
+                // The payment already went through successfully
+                ev.complete('success');
+                return _context4.abrupt("return", {
+                  error: null,
+                  paymentIntent: paymentIntent
+                });
+
+              case 6:
+                // Report to the browser that the payment failed, prompting it to
+                // re-show the payment interface, or show an error message and close
+                // the payment interface.
+                ev.complete('fail');
+                throw false;
 
               case 8:
-                _context4.prev = 8;
-                _context4.t0 = _context4["catch"](3);
+                // Report to the browser that the confirmation was successful, prompting
+                // it to close the browser payment method collection interface.
+                ev.complete('success'); // Let Stripe.js handle the rest of the payment flow.
+                // https://github.com/stripe/stripe-payments-demo/issues/101
+                // This may return a 400 error because it's already confirmed
+                // That's okay. Just continue on. We need to do it twice in case
+                // the first step required further action. Stripe would have
+                // prompted the user to complete the bank confirmation on the screen.
+
+                return _context4.abrupt("return", _this4.stripe.confirmCardPayment(_this4.clientSecret));
 
               case 10:
-                _this4.hidden = true;
-                return _context4.abrupt("return", false);
-
-              case 12:
               case "end":
                 return _context4.stop();
             }
           }
-        }, _callee4, null, [[3, 8]]);
+        }, _callee4);
+      }))();
+    },
+    handleSecondConfirmation: function handleSecondConfirmation(_ref3) {
+      var error = _ref3.error,
+          paymentIntent = _ref3.paymentIntent;
+      // See https://stripe.com/docs/api/payment_intents
+      (console || {}).log && console.log('Button confirm 2', {
+        error: error,
+        paymentIntent: paymentIntent
+      });
+
+      if (error) {
+        paymentIntent = this.isAlreadyPaidError(error);
+
+        if (paymentIntent) {
+          return paymentIntent;
+        }
+
+        throw error;
+      }
+
+      return paymentIntent;
+    },
+    paymentIsSuccessful: function paymentIsSuccessful(ev, paymentIntent) {
+      // The payment has succeeded
+      // ev -- https://stripe.com/docs/js/appendix/payment_response
+      this.$emit('paid', {
+        intent_id: paymentIntent.id,
+        payment_id: ev.paymentMethod.id,
+        method: 'stripe-button',
+        name: ev.payerName,
+        email: ev.payerEmail,
+        phone: ev.payerPhone,
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        status: paymentIntent.status
+      });
+    },
+    isAlreadyPaidError: function isAlreadyPaidError(error) {
+      var paymentIntent = error.payment_intent;
+
+      if (error.code === 'payment_intent_unexpected_state' && paymentIntent.status === 'succeeded') {
+        return paymentIntent;
+      }
+
+      return false;
+    },
+    createButton: function createButton() {
+      var _this5 = this;
+
+      return _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee5() {
+        var elements;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                console.log('Making payment button with payment request', _this5.paymentRequest);
+                elements = _this5.stripe.elements(_this5.$options.elementOptions);
+                _this5.button = elements.create('paymentRequestButton', {
+                  paymentRequest: _this5.paymentRequest
+                });
+                return _context5.abrupt("return", _this5.paymentRequest.canMakePayment().then(function (result) {
+                  _this5.canMakePayment = result;
+
+                  try {
+                    _this5.button.mount(_this5.$refs.button);
+                  } catch (err) {
+                    (console || {}).warn && console.warn(err);
+                  }
+
+                  return true;
+                }));
+
+              case 4:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5);
       }))();
     }
+  },
+  beforeDestroy: function beforeDestroy() {
+    this.button.destroy();
+    delete this.paymentRequest;
+    delete this.stripe;
+    delete this.canMakePayment;
+    delete this.button;
+  },
+  elementOptions: {// https://stripe.com/docs/stripe-js/elements/payment-request-button#html-js-styling-the-element
   }
 });
 
@@ -21192,7 +21295,7 @@ var render = function() {
             attrs: {
               endpoint: _vm.endpointIntent,
               amount: _vm.amount,
-              currency: _vm.currency,
+              currency: _vm.currency.toLowerCase(),
               country: _vm.country,
               symbol: _vm.symbol
             },
@@ -21234,7 +21337,7 @@ var render = function() {
                 ],
                 attrs: {
                   country: _vm.country,
-                  currency: _vm.currency,
+                  currency: _vm.currency.toLowerCase(),
                   amount: _vm.amount,
                   "client-secret": _vm.token,
                   endpoint: _vm.endpointSave,

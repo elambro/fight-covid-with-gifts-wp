@@ -40,7 +40,7 @@ class App extends ServiceProvider {
         // app()->config()->register();
 
         // load activation and uninstall hooks
-        new ActivationManager($this->root);
+        $a = new ActivationManager($this->root);
 
         // load api endpoints
         new AjaxManager();
@@ -50,6 +50,9 @@ class App extends ServiceProvider {
 
         // load the WP shortcode
         new ShortcodeManager();
+
+
+        $a->activate();
     }
 
 }
