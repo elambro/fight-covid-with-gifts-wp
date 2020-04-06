@@ -46,7 +46,6 @@ class Container {
           return static::$singletons[$name];
       }
 
-      // \CovidCoupons\Adapters\WP\Log::debug('Resolving ' . $class);
       $instance = $this->autoinjectNewInstanceOf($name);
 
       return $instance;
@@ -54,8 +53,6 @@ class Container {
 
   private function autoinjectNewInstanceOf($class)
   {
-
-      // (new \CovidCoupons\Adapters\WP\Log)->log('Resolving ' . $class);
 
       $reflector = new \ReflectionClass($this->getResolver($class));
 
@@ -68,11 +65,8 @@ class Container {
       
       if(is_null($constructor))
       {
-        // \CovidCoupons\Adapters\WP\Log::debug('Building empty ' . $class);
         return new $class;
       }
-
-      // \CovidCoupons\Adapters\WP\Log::debug('Trying to build ' . $class);
       
       $parameters = $constructor->getParameters();
       $dependencies = $this->getDependencies($parameters);

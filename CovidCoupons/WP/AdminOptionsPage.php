@@ -27,7 +27,14 @@ class AdminOptionsPage extends AbstractAdminPage {
 
     public function handle()
     {
+
         echo '<h1>CovidCoupons Options</h1>';
+        
+        $messages = cvdapp()->gateway()->getInstallationMessages();
+        foreach ($messages as $message) {
+            echo '<div class="notice notice-warning"><p>' . $message . '</p></div>';
+        }
+
         echo '<div style="padding: 30px">';
         echo '<h2>Instructions</h2>';
         echo '<p>Covid Coupons are a means to support small businesses in your area that may be struggling due to closures and isolation of COVID-19. If you need ' . 

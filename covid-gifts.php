@@ -15,6 +15,13 @@ if (!defined('COVID_COUPONS_ROOT')) {
   define('COVID_COUPONS_ROOT', dirname(__FILE__));
 }
 
+if (!defined('COVID_COUPONS_HOME')) {
+  if ( ! function_exists( 'get_home_path' ) ) {
+      include_once ABSPATH . '/wp-admin/includes/file.php';
+  }
+  define('COVID_COUPONS_HOME', \get_home_path());
+}
+
 if (!function_exists('cvdapp')) {
     function cvdapp()
     {

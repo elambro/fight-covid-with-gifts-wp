@@ -117,9 +117,6 @@ class Config implements ConfigInterface {
         $encrypt_method = "AES-256-CBC";
         $key = hash( 'sha256', $this->secret1());
         $iv = substr( hash( 'sha256', $this->secret2() ), 0, 16 );
-
-        $this->log('Encryping ' . $string . ' with ' . $iv . ' and ' . $key);
-
         return base64_encode( openssl_encrypt( $string, $encrypt_method, $key, 0, $iv ) );
     }
 
@@ -129,13 +126,7 @@ class Config implements ConfigInterface {
         $encrypt_method = "AES-256-CBC";
         $key = hash( 'sha256', $this->secret1());
         $iv = substr( hash( 'sha256', $this->secret2() ), 0, 16 );
-
-        $this->log('Decryping ' . $string . ' with ' . $iv . ' and ' . $key);
-
         $decrypted = openssl_decrypt( base64_decode( $string ), $encrypt_method, $key, 0, $iv );
-
-        $this->log('Decrypted is ' . $decrypted);
-
         return $decrypted;
     }
 
@@ -150,7 +141,6 @@ class Config implements ConfigInterface {
 
     private function shortKey($key)
     {
-        // $this->log('Getting short key for ' . $key);
         if (in_array($key, $this->keys)) {
             $key = array_search($key, $this->keys);
         }
@@ -222,9 +212,6 @@ class Config implements ConfigInterface {
 
     public function __get($attribute)
     {
-        $this->log('__get ' . $attribute);
-
-
         if (!static::$options) {
             $this->fetch();
         }
@@ -235,16 +222,11 @@ class Config implements ConfigInterface {
         if (method_exists($this, $method)) {
             return $this->$method($val);
         }
-
-        $this->log('Getting value for ' . $attribute);
-
         return $val && $this->shouldBeEncrypted($attribute) ? $this->decrypt($val) : $val;
     }
 
     public function __set($attribute, $value)
     {
-        $this->log('__set ' . $attribute);
-
         if (property_exists($this, $attribute)) {
             $this->$attribute = $value;
         }
@@ -275,11 +257,5 @@ class Config implements ConfigInterface {
             return $this->__set($str, $args[0]);
         }
     }
-
-    private function log($message, $dump = null)
-    {
-        // return (new \CovidCoupons\Adapters\WP\Log)->log($message, $dump);
-    }
-
 
 }

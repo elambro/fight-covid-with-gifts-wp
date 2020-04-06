@@ -69,6 +69,53 @@ class Stripe implements Gateway
         return $intent;
     }
 
+    public static function getHomePath()
+    {
+        return COVID_COUPONS_HOME;
+    }
+
+    public static function getCopyFromFile()
+    {
+        return COVID_COUPONS_ROOT . '/apple-pay-domain-file';
+    }
+
+    public static function getCopyToFile()
+    {
+        return static::getWellKnownPath().'apple-developer-merchantid-domain-association';
+    }
+
+    public static function getWellKnownPath()
+    {
+        return static::getHomePath().'.well-known/';
+    }
+
+    public function getInstallationMessages()
+    {
+        $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
+        $messages = [];
+        $path = static::getWellKnownPath();
+        if (!is_dir($path)) {
+            $messages[] = "Covid Coupon failed to create a new directory: <strong>{$path}</strong>. You can create the directory yourself. " . 
+            "See <a href=\"{$url}\" target=\"_blank\">Stripe Docs</a>.";
+        }
+        if (!file_exists(static::getCopyToFile())) {
+            $from = static::getCopyFromFile();
+            $to = static::getCopyToFile();
+            $messages[] = "Covid Coupon failed to copy your developer file for an Apple Pay button. " . 
+                'You can do this manually by copying the file at <br /><strong><code>'.$from.'</code></strong><br> to the server location <br><strong><code>'.$to.'</code></strong>.<br> ' . 
+                'See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
+        }
+
+        $result = static::registerApplePayDomain();
+
+        if (!$result || !$result->id) {
+            $messages[] = 'Covid Coupon failed to register your domain with Stripe in order to show an ApplePay or GPay button. You can register your domain on your Stripe dashboard, or try again.';
+        }
+
+
+        return $messages;
+    }
+
     public function register($root = null)
     {
         // Move /wp/CovidCoupons/apple-pay-domain-file to be available from 
@@ -77,124 +124,48 @@ class Stripe implements Gateway
         $success1 = false;
         $success2 = false;
         $success3 = false;
-
-        (new \CovidCoupons\Adapters\WP\Log)->debug('1');
-
         try {
-
-            (new \CovidCoupons\Adapters\WP\Log)->debug('2');
-
-            $dir = get_home_path().'.well-known';
-
-
-            (new \CovidCoupons\Adapters\WP\Log)->debug('3');
-
+            $dir = static::getWellKnownPath();
             if (!is_dir($dir)) {
-
-                (new \CovidCoupons\Adapters\WP\Log)->debug('4');
-
                 if (!mkdir($dir, 755, true)) {
-
-                    (new \CovidCoupons\Adapters\WP\Log)->debug('5');
-
-                    $this->addDirFailedWarning($dir);
-
-                    (new \CovidCoupons\Adapters\WP\Log)->debug('6');
-                
+                    // $this->addDirFailedWarning($dir);
                 } 
-
             } 
-
             $success1 = is_dir($dir);
-
             if ($success1) {
-
-                (new \CovidCoupons\Adapters\WP\Log)->debug('7');
-
-                $from = COVID_COUPONS_ROOT . '/apple-pay-domain-file';
-                $to = $dir.'/apple-developer-merchantid-domain-association';
-
+                $from = static::getCopyFromFile();
+                $to = static::getCopyToFile();
                 if (!file_exists(($to))) {
-
-                    (new \CovidCoupons\Adapters\WP\Log)->debug('8');
-
                     try {
                         copy( $from, $to);
-
-                        (new \CovidCoupons\Adapters\WP\Log)->debug('9');
-
                     } catch (\Throwable $e) {
-                        $this->copyFileFailedWarning($from, $to);
-                        (new \CovidCoupons\Adapters\WP\Log)->debug('10');
+                        // $this->copyFileFailedWarning($from, $to);
                     } catch (\Exception $e) {
-                        $this->copyFileFailedWarning($from, $to);
-                        (new \CovidCoupons\Adapters\WP\Log)->debug('11');
+                        // $this->copyFileFailedWarning($from, $to);
                     }
                 }
-
                 $success2 = file_exists($to);
             }
-
-            
-
         } catch (\Throwable $e) {
-            $this->addDirFailedWarning($dir);
-            (new \CovidCoupons\Adapters\WP\Log)->debug('12');
+            // $this->addDirFailedWarning($dir);
         } catch (\Exception $e) {
-            $this->addDirFailedWarning($dir);
-            (new \CovidCoupons\Adapters\WP\Log)->debug('13');
+            // $this->addDirFailedWarning($dir);
         }
-
-        (new \CovidCoupons\Adapters\WP\Log)->debug('14');
-
-        try {            
-            // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
-            \Stripe\ApplePayDomain::create([ 'domain_name' => cvdapp()->domain() ]);
-            $success3 = true;
-        } catch (\Throwable $e) {
-            $this->addDomainFailedWarning($e->getMessage());
-        } catch (\Exception $e) {
-            $this->addDomainFailedWarning($e->getMessage());
-        }
-
-        (new \CovidCoupons\Adapters\WP\Log)->debug('15');
-
+        $success3 = static::registerApplePayDomain();
         cvdapp()->config()->installed = $success1 && $success2 && $success3 ? true : false;
         cvdapp()->config()->save();
-
-        (new \CovidCoupons\Adapters\WP\Log)->debug('16');
     }
 
-    private function addDomainFailedWarning($msg)
+    public static function registerApplePayDomain()
     {
-        add_action( 'admin_notices', function () use ($msg) {
-            $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
-            echo '<div class="notice notice-warning"><p>Covid Coupon failed to add your domain <strong>' . acvapp()->domain() . '</strong> to Stripe. ';
-            echo ' ' . ( $msg ? '('.$msg.') ' : '' );
-            echo 'You can do this manually. See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
-            echo '</p></div>';
-        });
-    }
-
-    private function copyFileFailedWarning($from, $to)
-    {
-        add_action( 'admin_notices', function () use ($from, $to) {
-            $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
-            echo '<div class="notice notice-warning"><p>Covid Coupon failed to copy your developer file for an Apple Pay button. ';
-            echo 'You can do this manually by copying the file at <strong>'.$from.'</strong> to <strong>'.$to.'</strong>. ';
-            echo 'See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
-            echo '</p></div>';
-        });
-    }
-
-    private function addDirFailedWarning($dir)
-    {
-        add_action( 'admin_notices', function () use ($dir) {
-            $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
-            echo '<div class="notice notice-warning"><p>Covid Coupon failed to create a new directory: <strong>' . $url . '</strong>. ';
-            echo 'See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
-            echo '</p></div>';
-        });
+        try {            
+            // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
+            return \Stripe\ApplePayDomain::create([ 'domain_name' => cvdapp()->domain() ]);
+        } catch (\Throwable $e) {
+            // $this->addDomainFailedWarning($e->getMessage());
+        } catch (\Exception $e) {
+            // $this->addDomainFailedWarning($e->getMessage());
+        }
     }
 
     private function checkForNextAction($intent)
@@ -220,8 +191,6 @@ class Stripe implements Gateway
         } else {
             $trans = 'errors.gateway';
         }
-
-
         throw new PaymentException($trans, null, $e);
     }
 

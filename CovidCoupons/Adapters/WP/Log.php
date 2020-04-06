@@ -8,9 +8,9 @@ class Log implements LogInterface {
 
     public function debug($message, $array = null)
     {
-        // if (cvdapp()->config()->debug()) {
+        if (cvdapp()->config()->debug()) {
             $this->log($message, $array);
-        // }
+        }
     }
 
     public function log($message, $array = null)

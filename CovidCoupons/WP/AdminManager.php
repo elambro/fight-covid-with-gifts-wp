@@ -16,6 +16,7 @@ class AdminManager {
         $this->version = cvdapp_version(); 
         $this->root = \plugin_dir_url(cvdapp_root());
         $this->attach_hooks();
+        $this->checkOptions();
 	}
 
     protected function checkOptions()
@@ -50,9 +51,6 @@ class AdminManager {
 
 	public function addMenus()
     {
-
-
-                $this->checkOptions();
         $main = $this->getMainPage();
         $pages = $this->getSubPages();
 
