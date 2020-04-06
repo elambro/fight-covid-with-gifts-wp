@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :style="style">
         <div ref="button"></div>
     </div>
 </template>
@@ -57,6 +57,11 @@
             .catch( err => {
                 (console||{}).warn && console.warn('Failed to mount payment button.', err);
             })
+        },
+        computed: {
+            style() {
+                return this.canMakePayment ? {margin: '20px 0'} : null;
+            }
         },
         methods: {
             
@@ -170,7 +175,6 @@
             },
             async createButton()
             {
-                console.log('Making payment button with payment request', this.paymentRequest)
                 const elements = this.stripe.elements(this.$options.elementOptions);
                 this.button    = elements.create('paymentRequestButton', {paymentRequest: this.paymentRequest});
 

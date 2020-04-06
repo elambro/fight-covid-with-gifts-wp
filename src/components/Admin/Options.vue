@@ -93,12 +93,13 @@
 
             <div class="form-row mb-3">
                 <label class="col-md-3">{{ $t('admin.labels.email_required') }}</label>
-                <div class="col-md-9">
-                    <div class="form-check">
-                        <input type="checkbox" name="email_required" v-model="settings.email_required" class="form-check-input">
-                        <!-- <label class="form-check-label" for="exampleCheck1">Check me out</label> -->
-                    </div>
-                    <small class="form-text text-muted">{{ $t('admin.help.email_required') }}</small>
+                <div class="col-md-9 form-check">
+                    <input type="checkbox" name="email_required" v-model="settings.email_required" id="email-required" class="form-check-input" style="margin-top: 2px">
+                    <label class="form-check-label" for="email-required">
+                        <small class="form-text text-muted" style="padding-left: 30px;">
+                            {{ $t('admin.help.email_required') }}
+                        </small>
+                    </label>
                 </div>
             </div>
 

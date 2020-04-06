@@ -1,9 +1,9 @@
 <?php
 /*
-  Plugin Name: Gift Certificates - Fight Covid-19
+  Plugin Name: Covid Coupons - Fight Covid-19
   Version: 1.0
-  Plugin URI: http://16personalities.com
-  Description: Sell gift certificates from your website
+  Plugin URI: http://lambroschini.com/covid-apps
+  Description: Sell Covid Coupons from your website. Help small businesses to make it through this tough time.
   Author: Erin Lambroschini
   Author URI: http://lambroschini.com
  */
@@ -18,10 +18,10 @@ if (!defined('COVID_COUPONS_ROOT')) {
 if (!function_exists('cvdapp')) {
     function cvdapp()
     {
-        return \CovidGifts\App::getInstance(__FILE__);
+        return \CovidCoupons\App::getInstance(__FILE__);
     }
 } 
-    elseif ( !(cvdapp() instanceof \CovidGifts\App))
+    elseif ( !(cvdapp() instanceof \CovidCoupons\App))
 {
     throw new Exception('There is a clash with another plugin. This plugin needs to use function `cvdapp()`');
 }

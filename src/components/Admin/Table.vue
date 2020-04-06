@@ -44,7 +44,7 @@
             onSave(child, action, data)
             {
                 child.$props.attributes = data.attributes;
-                this.$refs.msg.showMessage('success', 'Saved.');
+                this.$refs.msg.showMessage('success', 'Saved. Refresh the page to see any changes.');
             },
             onError(err)
             {
