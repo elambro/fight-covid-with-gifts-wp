@@ -2,7 +2,7 @@
 /*
   Plugin Name: Covid Coupons - Fight Covid-19
   Version: 1.2
-  Plugin URI: http://lambroschini.com/covid-apps
+  Plugin URI: https://lambroschini.com/covid-coupons/
   Description: Sell Covid Coupons from your website. Help small businesses to make it through this tough time.
   Author: Erin Lambroschini
   Author URI: http://lambroschini.com
