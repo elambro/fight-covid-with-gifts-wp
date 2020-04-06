@@ -50,9 +50,6 @@ class App extends ServiceProvider {
 
         // load the WP shortcode
         new ShortcodeManager();
-
-
-        $a->activate();
     }
 
 }

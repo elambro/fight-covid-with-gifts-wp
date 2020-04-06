@@ -73,25 +73,128 @@ class Stripe implements Gateway
     {
         // Move /wp/CovidCoupons/apple-pay-domain-file to be available from 
         // https://example.com/.well-known/apple-developer-merchantid-domain-association
-        try {        
+        
+        $success1 = false;
+        $success2 = false;
+        $success3 = false;
+
+        (new \CovidCoupons\Adapters\WP\Log)->debug('1');
+
+        try {
+
+            (new \CovidCoupons\Adapters\WP\Log)->debug('2');
+
             $dir = get_home_path().'.well-known';
+
+
+            (new \CovidCoupons\Adapters\WP\Log)->debug('3');
+
             if (!is_dir($dir)) {
-                mkdir($dir, 755, true);
+
+                (new \CovidCoupons\Adapters\WP\Log)->debug('4');
+
+                if (!mkdir($dir, 755, true)) {
+
+                    (new \CovidCoupons\Adapters\WP\Log)->debug('5');
+
+                    $this->addDirFailedWarning($dir);
+
+                    (new \CovidCoupons\Adapters\WP\Log)->debug('6');
+                
+                } 
+
+            } 
+
+            $success1 = is_dir($dir);
+
+            if ($success1) {
+
+                (new \CovidCoupons\Adapters\WP\Log)->debug('7');
+
+                $from = COVID_COUPONS_ROOT . '/apple-pay-domain-file';
+                $to = $dir.'/apple-developer-merchantid-domain-association';
+
+                if (!file_exists(($to))) {
+
+                    (new \CovidCoupons\Adapters\WP\Log)->debug('8');
+
+                    try {
+                        copy( $from, $to);
+
+                        (new \CovidCoupons\Adapters\WP\Log)->debug('9');
+
+                    } catch (\Throwable $e) {
+                        $this->copyFileFailedWarning($from, $to);
+                        (new \CovidCoupons\Adapters\WP\Log)->debug('10');
+                    } catch (\Exception $e) {
+                        $this->copyFileFailedWarning($from, $to);
+                        (new \CovidCoupons\Adapters\WP\Log)->debug('11');
+                    }
+                }
+
+                $success2 = file_exists($to);
             }
 
-            copy( COVID_COUPONS_ROOT . '/apple-pay-domain-file', $dir.'/apple-developer-merchantid-domain-association');
-        
+            
+
         } catch (\Throwable $e) {
-            add_action( 'admin_notices', function () {
-                $class = 'notice notice-error';
-                $message = __( 'Covid Coupon failed to setup your developer file for an Apple Pay button. See ' . 
-                    'https://stripe.com/docs/apple-pay/web/v2#going-live', 'sample-text-domain' );
-                printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
-            });
+            $this->addDirFailedWarning($dir);
+            (new \CovidCoupons\Adapters\WP\Log)->debug('12');
+        } catch (\Exception $e) {
+            $this->addDirFailedWarning($dir);
+            (new \CovidCoupons\Adapters\WP\Log)->debug('13');
         }
 
-        // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
-        \Stripe\ApplePayDomain::create([ 'domain_name' => cvdapp()->domain() ]);
+        (new \CovidCoupons\Adapters\WP\Log)->debug('14');
+
+        try {            
+            // See https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
+            \Stripe\ApplePayDomain::create([ 'domain_name' => cvdapp()->domain() ]);
+            $success3 = true;
+        } catch (\Throwable $e) {
+            $this->addDomainFailedWarning($e->getMessage());
+        } catch (\Exception $e) {
+            $this->addDomainFailedWarning($e->getMessage());
+        }
+
+        (new \CovidCoupons\Adapters\WP\Log)->debug('15');
+
+        cvdapp()->config()->installed = $success1 && $success2 && $success3 ? true : false;
+        cvdapp()->config()->save();
+
+        (new \CovidCoupons\Adapters\WP\Log)->debug('16');
+    }
+
+    private function addDomainFailedWarning($msg)
+    {
+        add_action( 'admin_notices', function () use ($msg) {
+            $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
+            echo '<div class="notice notice-warning"><p>Covid Coupon failed to add your domain <strong>' . acvapp()->domain() . '</strong> to Stripe. ';
+            echo ' ' . ( $msg ? '('.$msg.') ' : '' );
+            echo 'You can do this manually. See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
+            echo '</p></div>';
+        });
+    }
+
+    private function copyFileFailedWarning($from, $to)
+    {
+        add_action( 'admin_notices', function () use ($from, $to) {
+            $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
+            echo '<div class="notice notice-warning"><p>Covid Coupon failed to copy your developer file for an Apple Pay button. ';
+            echo 'You can do this manually by copying the file at <strong>'.$from.'</strong> to <strong>'.$to.'</strong>. ';
+            echo 'See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
+            echo '</p></div>';
+        });
+    }
+
+    private function addDirFailedWarning($dir)
+    {
+        add_action( 'admin_notices', function () use ($dir) {
+            $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
+            echo '<div class="notice notice-warning"><p>Covid Coupon failed to create a new directory: <strong>' . $url . '</strong>. ';
+            echo 'See <a href="'.$url.'" target="_blank">Stripe Docs</a>.';
+            echo '</p></div>';
+        });
     }
 
     private function checkForNextAction($intent)

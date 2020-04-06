@@ -29,7 +29,7 @@ class Database implements DatabaseInterface {
     {
         $result = $this->db->update( $this->table, $attributes, ['id' => $id]);
 
-        cvdapp()->log('Updating ' . $this->table . ' where id is ' . $id, $attributes);
+        // cvdapp()->log('Updating ' . $this->table . ' where id is ' . $id, $attributes);
 
         if ($this->db->last_error) {
             throw new PaymentException($this->db->last_error);

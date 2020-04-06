@@ -18,6 +18,20 @@ class AdminManager {
         $this->attach_hooks();
 	}
 
+    protected function checkOptions()
+    {
+        if (!cvdapp()->config()->stripe_secret || !cvdapp()->config()->stripe_public) {
+
+            add_action( 'admin_notices', function () use ($msg) {
+                $url = 'https://stripe.com/docs/apple-pay/web/v2#going-live';
+                echo '<div class="notice notice-info"><p>Don\'t forget to enter your <a href="' . admin_url() . '/admin.php?page="covid-coupons-options">' . 
+                    '<strong>Covid Coupon</strong> options</a>.';
+                echo '</p></div>';
+            });
+
+        }
+    }
+
 	protected function attach_hooks()
     {
 		\add_action('admin_init', array($this, 'addMenus'));
@@ -37,6 +51,8 @@ class AdminManager {
 	public function addMenus()
     {
 
+
+                $this->checkOptions();
         $main = $this->getMainPage();
         $pages = $this->getSubPages();
 

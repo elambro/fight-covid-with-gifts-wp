@@ -43,11 +43,11 @@ abstract class AbstractModel {
 
     public function update($attributes = null)
     {
-        cvdapp()->log('Updating model with id ' . $this->id );
+        // cvdapp()->log('Updating model with id ' . $this->id );
 
         $ok = $this->db->update($attributes ?: $this->getAttributesForDb(), $this->id);
 
-        cvdapp()->log('Updated database. ', $ok);
+        // cvdapp()->log('Updated database. ', $ok);
 
         if ($attributes) {
             $this->setAttributes($attributes);

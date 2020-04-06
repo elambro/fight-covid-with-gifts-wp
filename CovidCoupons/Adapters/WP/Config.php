@@ -217,7 +217,7 @@ class Config implements ConfigInterface {
 
     public function isAdmin()
     {
-        return \current_user_can('manage_options');
+        return function_exists('wp_get_current_user') ? \current_user_can('manage_options') : null;
     }
 
     public function __get($attribute)

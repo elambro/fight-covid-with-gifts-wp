@@ -47,7 +47,7 @@ class SqlManager {
           UNIQUE KEY `gift_code` (`gift_code`),
           UNIQUE KEY `payment_id` (`payment_id`),
           UNIQUE KEY `intent_id` (`intent_id`)
-        ) $charset_collate;";
+        );";
 
     }
 

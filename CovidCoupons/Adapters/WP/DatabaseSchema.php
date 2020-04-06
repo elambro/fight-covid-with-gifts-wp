@@ -23,7 +23,7 @@ class DatabaseSchema implements DatabaseSchemaInterface {
 
     public function getCollation()
     {
-        return $this->db()->get_charset_collate();
+        return 'utf8_unicode_ci';//$this->db()->get_charset_collate();
     }
 
     public function getPrefix()
