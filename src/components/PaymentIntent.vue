@@ -1,6 +1,6 @@
 
 <template>
-    <form ref="form" method="post" :action="endpoint" @submit.prevent="submit">
+    <form ref="form" method="post" :action="endpoint" @submit.prevent="submit" class="covid-coupons-intent">
 
         <div class="form-row mb-3">
             <label class="col-md-3">{{ $t('intent.labels.amount') }}</label>
@@ -107,3 +107,31 @@
         }
     };
 </script>
+<style>
+.covid-coupons-intent .input-group {
+    display: flex;
+}
+
+.covid-coupons-intent .input-group-text {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    padding: .375rem .75rem;
+    margin-bottom: 0;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    text-align: center;
+    white-space: nowrap;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+}
+
+.covid-coupons-intent .input-group-prepend {
+    display: flex;
+}
+</style>

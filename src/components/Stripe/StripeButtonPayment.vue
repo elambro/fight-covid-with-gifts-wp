@@ -6,6 +6,8 @@
 
 <script>
 
+    const DEBUG = false;
+
     export default {
 
         name: 'StripeButtonPayment',
@@ -55,7 +57,7 @@
                 }
             })
             .catch( err => {
-                (console||{}).warn && console.warn('Failed to mount payment button.', err);
+                DEBUG && (console||{}).warn && console.warn('Failed to mount payment button.', err);
             })
         },
         computed: {
@@ -85,7 +87,7 @@
                 // FYI: const {shippingOption, shippingAddress, payerEmail, payerName, methodName, paymentMethod} = ev
                 // See https://stripe.com/docs/api/payment_methods/object
                 // Confirm the PaymentIntent without handling potential next actions (yet).
-                (console||{}).log && console.log('Button Payment event:', ev);
+                DEBUG && (console||{}).log && console.log('Button Payment event:', ev);
 
                 // Confirm the PaymentIntent without handling potential next actions (yet).
                 // https://stripe.com/docs/js/payment_intents/confirm_card_payment
@@ -97,13 +99,13 @@
                 .then( confirmResult2 => this.handleSecondConfirmation(confirmResult2))
                 .then( paymentIntent => this.paymentIsSuccessful(ev, paymentIntent))
                 .catch( err => {
-                    (console||{}).warn && console.warn('Payment event failed', err);
+                    DEBUG && (console||{}).warn && console.warn('Payment event failed', err);
                 })
             },
             async handleFirstConfirmation(ev, {error, paymentIntent})
             {
                 // See https://stripe.com/docs/api/payment_intents
-                (console||{}).log && console.log('Button confirm result:', {error, paymentIntent});
+                DEBUG && (console||{}).log && console.log('Button confirm result:', {error, paymentIntent});
 
                 if (error) {
                     paymentIntent = this.isAlreadyPaidError(error);
@@ -134,7 +136,7 @@
             handleSecondConfirmation({error, paymentIntent})
             {
                 // See https://stripe.com/docs/api/payment_intents
-                (console||{}).log && console.log('Button confirm 2', {error, paymentIntent});
+                DEBUG && (console||{}).log && console.log('Button confirm 2', {error, paymentIntent});
 
                 if (error) {
                     paymentIntent = this.isAlreadyPaidError(error);
@@ -184,7 +186,7 @@
                     try { 
                         this.button.mount(this.$refs.button);
                     } catch ( err ) {
-                        (console||{}).warn && console.warn(err);
+                        DEBUG && (console||{}).warn && console.warn(err);
                     }
                     return true;
                 });

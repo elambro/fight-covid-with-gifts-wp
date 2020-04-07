@@ -7,6 +7,8 @@ use CovidCoupons\App\Exceptions\PaymentNextStep;
 
 /**
  * @todo  - Still building
+ *
+ * Add to composer: liqpay/liqpay": "^1.2"
  */
 class LiqPay implements Gateway
 {

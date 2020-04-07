@@ -70,9 +70,9 @@ abstract class AbstractAdminPage {
         return $this;
     }
 
-    protected function addBootstrap()
+    protected function addStyle()
     {
-        \wp_enqueue_style('Bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css', [], '4.4.1');
+        // \wp_enqueue_style('CovidCoupons', $this->root . 'dist/style.css', [], $this->version );
         return $this;
     }
 

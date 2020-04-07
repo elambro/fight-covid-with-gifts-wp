@@ -22,8 +22,8 @@ class ShortcodeManager {
     protected function enqueue()
     {
         $dependencies = array();
-        \wp_enqueue_script( 'CovidCoupons', $this->root . 'dist/index.js', $dependencies, $this->version );
-        \wp_enqueue_style('Bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css', [], '4.4.1');
+        \wp_enqueue_script( 'CovidCoupons', $this->root . 'dist/index.js', [], $this->version );
+        // \wp_enqueue_style('CovidCoupons', $this->root . 'dist/style.css', [], $this->version );
         $obj = $this->localizeScript();
         if ( $obj ) {
             \wp_localize_script('CovidCoupons', 'ajax_object', $obj);

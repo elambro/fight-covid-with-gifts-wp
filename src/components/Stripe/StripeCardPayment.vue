@@ -136,6 +136,12 @@
         beforeDestroy()
         {
             this.card.destroy();
+            delete this.card;
+            delete this.userName;
+            delete this.userEmail;
+            delete this.userPhone;
+            delete this.busy;
+            delete this.cardCompleted;
         },
 
         elementOptions : {},

@@ -5,6 +5,7 @@
     "completed": "Thank you for purchasing a gift certificate for {company} in the amount of {symbol} {amount}.",
     "gift_code": "Your code is {gift_code}. Please copy it for safe keeping.",
 
+    "change": "Change",
 
     "form": {
         "labels": {

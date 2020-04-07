@@ -21,23 +21,6 @@
 
         <div v-else>
 
-            <div class="form-row mb-3">
-                {{ symbol || currency }} {{ amount }}
-            </div>
-
-            <StripeCheckout
-                v-show="!paid"
-                :country="country"
-                :currency="currency.toLowerCase()"
-                :amount="amount"
-                :client-secret="token"
-                :endpoint="endpointSave"
-                :email-required="emailRequired"
-                :stripe-api-key="stripeApiKey"
-                @payment="onPaid"
-                @error="onError"
-            ></StripeCheckout>
-
             <div v-if="paid">
 
                 <span class="completed">{{ $t('completed', trans_result) }}</span>
@@ -56,6 +39,28 @@
 
                 </div>
             
+            </div>
+
+            <div v-else>
+
+                <div class="form-row mb-3">
+                    <span class="covid-coupons-intent-amount">{{ symbol || currency }} {{ amount }}</span>
+                    <small><a href="javascript:void(0)" @click="changeAmount">{{ $t('change') }}</a></small>
+                </div>
+
+                <StripeCheckout
+                    v-show="!paid"
+                    :country="country"
+                    :currency="currency.toLowerCase()"
+                    :amount="amount"
+                    :client-secret="token"
+                    :endpoint="endpointSave"
+                    :email-required="emailRequired"
+                    :stripe-api-key="stripeApiKey"
+                    @payment="onPaid"
+                    @error="onError"
+                ></StripeCheckout>
+
             </div>
         
         </div>
@@ -214,6 +219,10 @@
                 }
 
                 msg && this.$refs.msg.showMessage('warning',msg)
+            },
+            changeAmount()
+            {
+                this.token = null;
             }
         },
         beforeDestroy () {

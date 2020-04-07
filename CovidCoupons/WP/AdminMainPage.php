@@ -25,7 +25,7 @@ class AdminMainPage extends AbstractAdminPage {
     protected function enqueue()
     {
         $this->addScript('dist/table.js', $this->getAjaxObject());
-        $this->addBootstrap();
+        // $this->addStyle();
     }
 
     public function handle()

@@ -48,14 +48,14 @@ export default {
         if (csrf_field) {
             form.append(csrf_field, csrf_value);
         } else {
-            console.warn('No nonce was found!', ajax_object);
+            this.warn('No nonce was found!', ajax_object);
         }
         return form;
     },
 
     formatResponse(response)
     {
-        this.log('Formatting response:', response);
+        // this.log('Formatting response:', response);
         if (!((response||{}).data||{}).data) {
             throw {trans:'errors.connection', other:[]};
         }

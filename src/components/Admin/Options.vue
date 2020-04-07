@@ -1,6 +1,6 @@
 
 <template>
-    <div>
+    <div class="covid-coupon-options">
 
         <Messages ref="msg"></Messages>
 
@@ -12,7 +12,7 @@
 
             <div class="d-sm-flex mt-5">
                 <p class="flex-shrink-0">
-                    <button type="submit" class="btn btn-primary btn-lg btn-block" :disabled="saving">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block button-primary" :disabled="saving">
                         <span v-if="saving">{{ $t('admin.buttons.saving') }}</span>
                         <span v-else>{{ $t('admin.buttons.save') }}</span>
                     </button>
@@ -152,7 +152,7 @@
 
             <div class="d-sm-flex mt-5">
                 <p class="flex-shrink-0">
-                    <button type="submit" class="btn btn-primary btn-lg btn-block" :disabled="saving">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block button-primary" :disabled="saving">
                         <span v-if="saving">{{ $t('admin.buttons.saving') }}</span>
                         <span v-else>{{ $t('admin.buttons.save') }}</span>
                     </button>
@@ -261,7 +261,24 @@
             }
         },
         beforeDestroy () {
-
+            delete this.settings;
         }
     };
 </script>
+<style>
+    .covid-coupon-options .form-row {
+        display: flex;
+    }
+    .covid-coupon-options .mb-3 {
+        margin-bottom: 1em;
+    }
+    .covid-coupon-options label {
+        color: #23282d;
+        font-weight: bold;
+        min-width: 30%;
+    }
+    .covid-coupon-options .form-text {
+        display: block;
+    }
+
+</style>
