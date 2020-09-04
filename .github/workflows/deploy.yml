@@ -13,13 +13,7 @@ jobs:
           composer install --ansi --no-progress --no-interaction --prefer-dist --no-suggest
           npm install
           npm run prod
-          git add .
-          git config --global user.email "elambro@users.noreply.github.com"
-          git config --global user.name "elambro"
-          git commit -m 'Built in workflow'
           VER=$((cat version) | tr '.' '_')
-          git tag ${VER}
-          git push --follow-tags
           rsync -azp --include-from=.production-build --ignore-missing-args . covid-coupons/
           find covid-coupons -type d -exec chmod 775 {} \;
           find covid-coupons -type f -exec chmod 664 {} \;
