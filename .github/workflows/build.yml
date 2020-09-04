@@ -20,5 +20,7 @@ jobs:
       - run: npm install
       - run: npm run prod
       - run: git add .
+      - run: git config --global user.email "elambro@users.noreply.github.com"
+      - run: git config --global user.name "elambro"
       - run: git commit -m 'Built in workflow'
       - run: git push
