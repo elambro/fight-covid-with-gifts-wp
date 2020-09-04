@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: erlamrbo
+Contributors: erlambro
 Donate link: https://lambroschini.com
 Tags: covid, gift certificates, free
 Requires at least: 5.1
