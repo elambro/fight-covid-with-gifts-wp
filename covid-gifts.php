@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Covid Coupons - Fight Covid-19
-  Version: 1.2.1
+  Version: 1.3.0
   Plugin URI: https://lambroschini.com/covid-coupons/
   Description: Sell Covid Coupons from your website. Help small businesses to make it through this tough time.
   Author: Erin Lambroschini
@@ -36,7 +36,9 @@ if (!function_exists('cvdapp')) {
 if (!function_exists('cvdapp_version')) {
     function cvdapp_version()
     {
-       return '1.2.1';
+       $vfile = __dir__.'/version';
+       $version = trim( (file_exists($vfile) ? file_get_contents($vfile) : null) ?? 'unknown');
+       return $version;
     }
 }
 

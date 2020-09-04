@@ -1,0 +1,41 @@
+# THIS FILE TELLS THE PRODUCTION PIPELINE WHICH FILES TO KEEP BEFORE ZIPPING:
+#  + CovidCoupons
+#  + dist
+#  + vendor
+#  + apple-pay-domain-file
+#  + covid-gifts.php
+#  + LICENSE
+#  + readme.md
+
+# exclude hidden files and folders
+- .#
+- /.*
+
+- /src
+- /SimplePayPal
+
++ /CovidCoupons
++ /CovidCoupons/*
++ /dist
++ /dist/*
++ /vendor
++ /vendor/*
++ apple-pay-domain-file
++ covid-gifts.php
++ LICENSE
++ readme.md
+
+# Take out packaging stuff
+- npm-debug.log
+- package-lock.json
+- package.json
+- webpack.mix.js
+- yarn.lock
+- node_modules
+- composer.json
+- composer.lock
+- public/hot
+- yarn-error.log
+
+# Don't copy over the tmp dir itself where we create the production build
+- /tmp
