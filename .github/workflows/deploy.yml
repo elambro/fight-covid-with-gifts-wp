@@ -10,7 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
-      - uses: actions/upload-artifact@v2
       - name: Install Composer
         run: composer install --ansi --no-progress --no-interaction --prefer-dist --no-suggest
       - name: Install NPM
@@ -36,6 +35,7 @@ jobs:
       - name: Cleaning
         run: rm -rf covid-coupons
       - name: Saving
+        uses: actions/upload-artifact@v2
         with:
           name: CovidCoupons-v${VER}.zip
           path: CovidCoupons-v${VER}.zip
