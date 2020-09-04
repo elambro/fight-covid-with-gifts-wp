@@ -8,14 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
-      - name: Install Composer
-        run: composer install --ansi --no-progress --no-interaction --prefer-dist --no-suggest
-      - name: Install NPM
+      - name: Everything
         run: | 
+          composer install --ansi --no-progress --no-interaction --prefer-dist --no-suggest
           npm install
           npm run prod
-      - name: Pushing
-        run: | 
           git add .
           git config --global user.email "elambro@users.noreply.github.com"
           git config --global user.name "elambro"
@@ -23,15 +20,11 @@ jobs:
           VER=$((cat version) | tr '.' '_')
           git tag ${VER}
           git push --follow-tags
-      - name: Zipping package
-        run: |
-          VER=$((cat version) | tr '.' '_')
           rsync -azp --include-from=.production-build --ignore-missing-args . covid-coupons/
           find covid-coupons -type d -exec chmod 775 {} \;
           find covid-coupons -type f -exec chmod 664 {} \;
           zip -r CovidCoupons-v${VER}.zip covid-coupons
-      - name: Cleaning
-        run: rm -rf covid-coupons
+          rm -rf covid-coupons
       - name: Saving
         uses: actions/upload-artifact@v2
         with:
