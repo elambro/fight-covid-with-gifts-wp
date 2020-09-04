@@ -1,0 +1,36 @@
+name: Create Release
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2-beta
+    - name: Installing composer
+      run: composer install --ansi --no-progress --no-interaction --prefer-dist --no-suggest
+    - name: Installing npm
+      run: npm install
+    - name: Building assets 
+      run: npm run prod
+    - name: Zipping package
+      steps: run: VER=$((cat version) | tr '.' '_')
+      - run: rsync -azp --include-from=.production-build --ignore-missing-args . covid-coupons/
+      - run: find temp -type d -exec chmod 775 {} \;
+      - run: find temp -type f -exec chmod 664 {} \;
+      - run: zip -r CovidCoupons-v${VER}.zip covid-coupons
+    - name: Cleaning
+      run: rm -rf covid-coupons
+    - name: Saving
+      uses: actions/download-artifact@v2
+      with:
+        name: CovidCoupons-v${VER}.zip
+        path: CovidCoupons-v${VER}.zip
+      
